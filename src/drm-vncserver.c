@@ -583,7 +583,7 @@ int main(int argc, char **argv)
                 switch (*(argv[i] + 1)) {
                 case 'h':
                     print_usage(argv);
-                    exit(0);
+                    exit(EXIT_SUCCESS);
                     break;
                 case 'f':
                     i++;
