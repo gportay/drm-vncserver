@@ -17,8 +17,8 @@
 #include <errno.h>
 
 /* libvncserver */
-#include "rfb/rfb.h"
-#include "rfb/keysym.h"
+#include <rfb/rfb.h>
+#include <rfb/keysym.h>
 
 #include "tklog.h"
 #include "keyboard.h"

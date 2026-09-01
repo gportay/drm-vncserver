@@ -17,7 +17,7 @@
 #include <errno.h>
 
 /* libvncserver */
-#include "rfb/rfb.h"
+#include <rfb/rfb.h>
 
 #include "touch.h"
 #include "tklog.h"
