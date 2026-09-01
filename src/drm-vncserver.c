@@ -554,17 +554,18 @@ static void update_screen32()
 static void print_usage(char **argv)
 {
     printf("%s [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
-           "-p port    VNC port, default is 5900\n"
-           "-f device  drm device node, default is %s\n"
-           "-k device  keyboard device node (example: /dev/input/event0)\n"
-           "-t device  touchscreen device node (example:/dev/input/event2)\n"
-           "-m device  mouse device node (example:/dev/input/event2)\n"
-           "-r degrees framebuffer rotation, default is 0.\n"
-           "-R degrees touchscreen rotation, default is same as framebuffer rotation\n"
-           "-F         FPS Maximum target FPS. Default is 0, meaning unlimited FPS.\n"
-           "-v         verbose\n"
-           "-h         print this help\n",
+           "-p port                VNC port, default is 5900\n"
+           "-f device              drm device node, default is %s\n"
+           "-k device              keyboard device node (example: /dev/input/event0)\n"
+           "-t device              touchscreen device node (example:/dev/input/event2)\n"
+           "-m device              mouse device node (example:/dev/input/event2)\n"
+           "-r degrees             framebuffer rotation, default is 0.\n"
+           "-R degrees             touchscreen rotation, default is same as framebuffer rotation\n"
+           "-F                     FPS Maximum target FPS. Default is 0, meaning unlimited FPS.\n"
+           "-v                     verbose\n"
+           "-h                     print this help\n",
            *argv, drmFB_device);
+    rfbUsage();
 }
 
 int main(int argc, char **argv)
