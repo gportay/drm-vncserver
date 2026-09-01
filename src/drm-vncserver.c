@@ -203,7 +203,7 @@ static void init_drmFB(void)
     /* Open the DRM device */
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
     if (drmfd < 0) {
-        tklog_fatal("Unable to open DRM device %s.\n", drmFB_device);
+        tklog_fatal("Unable to open DRM device %s (%d).\n", drmFB_device, errno);
         exit(EXIT_FAILURE);
     }
 
@@ -252,13 +252,13 @@ static void init_drmFB(void)
 
     drmEncoder = drmModeGetEncoder(drmfd, drmConnector->encoder_id);
     if (!drmEncoder) {
-        tklog_fatal("Unable to drmModeGetEncoder (%d).\n", errno);
+        tklog_fatal("Unable to retrieve DRM encoder (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
     drmCrtc = drmModeGetCrtc(drmfd, drmEncoder->crtc_id);
     if (!drmCrtc) {
-        tklog_fatal("Unable to drmModeGetCrtc (%d).\n", errno);
+        tklog_fatal("Unable to retrieve DRM CRTC (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
@@ -267,7 +267,7 @@ static void init_drmFB(void)
     /* Check framebuffer id */
     drmFB = drmModeGetFB(drmfd, drmCrtc->buffer_id);
     if (drmFB == NULL) {
-        tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
+        tklog_fatal("Unable to retrieve DRM frame buffer (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
@@ -285,7 +285,7 @@ static void init_drmFB(void)
     dumb_map.offset = 0;
 
     if (drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0) {
-        tklog_fatal("DRM_IOCTL_MODE_MAP_DUMB failed (err=%d)\n", errno);
+        tklog_fatal("Unable to ioctl (DRM_IOCTL_MODE_MAP_DUMB, %d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
@@ -299,7 +299,7 @@ static void init_drmFB(void)
     DRM_FrameBuffer = mmap(0, FrameBufferSize, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
     if (DRM_FrameBuffer == MAP_FAILED) {
-        tklog_fatal("DRM frame buffer mmap failed (err=%d)\n", errno);
+        tklog_fatal("Unable to mmap DRM frame buffer (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n", FrameBufferSize, DRM_FrameBuffer);
@@ -317,18 +317,18 @@ static void init_fb(void)
     int fbfd = -1;
 
     if ((fbfd = open(fb_device, O_RDONLY)) == -1) {
-        tklog_fatal("cannot open fb device %s\n", fb_device);
+        tklog_fatal("Unable to open fb device %s (%d)\n", fb_device, errno);
         exit(EXIT_FAILURE);
     }
     tklog_info("FB device %s successfully opened.\n");
 
     if (ioctl(fbfd, FBIOGET_VSCREENINFO, &var_scrinfo) != 0) {
-        tklog_fatal("ioctl error (FBIOGET_VSCREENINFO)\n");
+        tklog_fatal("Unable to ioctl (FBIOGET_VSCREENINFO, %d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
     if (ioctl(fbfd, FBIOGET_FSCREENINFO, &fix_scrinfo) != 0) {
-        tklog_fatal("ioctl error (FBIOGET_FSCREENINFO)\n");
+        tklog_fatal("Unable to ioctl (FBIOGET_FSCREENINFO, %d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
