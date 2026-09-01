@@ -641,22 +641,22 @@ int main(int argc, char **argv)
                 case 'f':
                     i++;
                     if (argv[i])
-                        strcpy(drmFB_device, argv[i]);
+                        strncpy(drmFB_device, argv[i], 255);
                     break;
                 case 't':
                     i++;
                     if (argv[i])
-                        strcpy(touch_device, argv[i]);
+                        strncpy(touch_device, argv[i], 255);
                     break;
                 case 'm':
                     i++;
                     if (argv[i])
-                        strcpy(mouse_device, argv[i]);
+                        strncpy(mouse_device, argv[i], 255);
                     break;
                 case 'k':
                     i++;
                     if (argv[i])
-                        strcpy(kbd_device, argv[i]);
+                        strncpy(kbd_device, argv[i], 255);
                     break;
                 case 'p':
                     i++;
