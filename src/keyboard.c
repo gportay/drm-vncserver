@@ -146,7 +146,7 @@ int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
         case XK_F8:             scancode = KEY_F8;         break; /* ffc5 */
         case XK_F9:             scancode = KEY_F9;         break; /* ffc6 */
         case XK_F10:            scancode = KEY_F10;        break; /* ffc7 */
-        /* case XK_F11:          scancode = KEY_F11;          break; /* ffc8 */
+        /* case XK_F11:          scancode = KEY_F11;          break; */ /* ffc8 */
         case XK_F12:            scancode = KEY_F12;        break; /* ffc9 */
         case XK_F11:
             rfbShutdownServer(cl->screen, TRUE);
