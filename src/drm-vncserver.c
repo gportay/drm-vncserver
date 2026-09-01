@@ -59,7 +59,7 @@ __ __| |           |  /_) |     ___|             |           |\n\
 
 #define BITS_PER_SAMPLE 8
 #define SAMPLES_PER_PIXEL 3
-//#define COLOR_MASK  0x1f001f
+/* #define COLOR_MASK  0x1f001f */
 #define COLOR_MASK (((1UL << BITS_PER_SAMPLE) << 1) - 1)
 #define PIXEL_FB_TO_RFB(p, r_offset, g_offset, b_offset) \
     ((p >> r_offset) & COLOR_MASK) | (((p >> g_offset) & COLOR_MASK) << BITS_PER_SAMPLE) | (((p >> b_offset) & COLOR_MASK) << (2 * BITS_PER_SAMPLE))
@@ -68,7 +68,7 @@ __ __| |           |  /_) |     ___|             |           |\n\
 #define ALIGN_UP(x, y)  ((x + (y)-1) & ~((y)-1))
 #endif
 
-// #define CHANNELS_PER_PIXEL 4
+/* #define CHANNELS_PER_PIXEL 4 */
 
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
@@ -99,7 +99,7 @@ static unsigned int FrameBuffer_Yheight;
 static unsigned int FrameBufferPixelSize;
 int verbose = 0;
 
-// Rectangle to be update by vnc client
+/* Rectangle to be update by vnc client */
 uint16_t minX = 0;
 uint16_t minY = 0;
 uint16_t maxX = 0;
@@ -135,7 +135,8 @@ static const struct type_name connector_type_names[] = {
     { DRM_MODE_CONNECTOR_DPI,         "DPI"       },
 };
 
-// Prototypes
+/* Prototypes */
+
 static void update_screen32();
 
 const char *connector_type_name(unsigned int type)
@@ -147,9 +148,7 @@ const char *connector_type_name(unsigned int type)
     return "INVALID";
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// FrameBuffer rotation functions
-///////////////////////////////////////////////////////////////////////////////
+/* FrameBuffer rotation functions */
 
 void rotateMatrix270(uint32_t * dest, uint32_t * src, uint16_t width,
                      int16_t height)
@@ -190,9 +189,7 @@ void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width,
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// DRM FrameBuffer initialization
-///////////////////////////////////////////////////////////////////////////////
+/* DRM FrameBuffer initialization */
 
 static void init_drmFB(void)
 {
@@ -203,7 +200,7 @@ static void init_drmFB(void)
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfoPtr  drmResolution = 0;
 
-    // Open the DRM device
+    /* Open the DRM device */
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
     if (drmfd < 0) {
         tklog_fatal("Unable to open DRM device %s.\n", drmFB_device);
@@ -212,7 +209,7 @@ static void init_drmFB(void)
 
     tklog_info("DRM device %s sucessfully opened.\n", drmFB_device);
 
-    // retrieve device resources
+    /* Retrieve device resources */
     drmRes = drmModeGetResources(drmfd);
     if (!drmRes) {
         tklog_fatal("Unable to retrieve DRM resources (%d).\n", errno);
@@ -225,7 +222,10 @@ static void init_drmFB(void)
     }
     tklog_info("DRM device has %d connectors.\n", drmRes->count_connectors);
 
-    // We use the first connector because this vncserver is for MPC devices. No more connectors...
+    /*
+     * We use the first connector because this vncserver is for MPC devices.
+     * No more connectors...
+     */
     drmConnector = drmModeGetConnectorCurrent(drmfd, drmRes->connectors[0]);
     if (!drmConnector) {
         tklog_fatal("Unable to get DRM device connector[0].\n");
@@ -241,7 +241,10 @@ static void init_drmFB(void)
         exit(EXIT_FAILURE);
     }
 
-    // Get resolution (we do not check preferred because there is only one mode)
+    /*
+     * Get resolution (we do not check preferred because there is only one
+     * mode)
+     */
     drmResolution = &drmConnector->modes[0];
     tklog_info("Resolution : %ux%u@%u\n", drmResolution->hdisplay,
                drmResolution->vdisplay, drmResolution->vrefresh);
@@ -269,7 +272,7 @@ static void init_drmFB(void)
                drmConnector->connector_id, drmConnector->encoder_id,
                drmCrtc->crtc_id);
 
-    /* check framebuffer id */
+    /* Check framebuffer id */
     drmFB = drmModeGetFB(drmfd, drmCrtc->buffer_id);
     if (drmFB == NULL) {
         tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
@@ -281,8 +284,10 @@ static void init_drmFB(void)
                drmFB->depth, drmFB->pitch, drmFB->width, drmFB->height,
                drmFB->bpp);
 
-    /* Now this is how we dump the framebuffer */
-    /* structure to retrieve FB later */
+    /*
+     * Now this is how we dump the framebuffer
+     * structure to retrieve FB later
+     */
     struct drm_mode_map_dumb dumb_map;
 
     memset(&dumb_map, 0, sizeof(dumb_map));
@@ -294,7 +299,7 @@ static void init_drmFB(void)
         exit(EXIT_FAILURE);
     }
 
-    // Recompute with drm infos..should be the same as fb0
+    /* Recompute with drm infos..should be the same as fb0 */
     FrameBufferSize          = drmFB->pitch * drmFB->height;
     FrameBuffer_BitsPerPixel = drmFB->bpp;
     FrameBuffer_BytesPP      = drmFB->bpp / 8;
@@ -316,9 +321,7 @@ static void init_drmFB(void)
     drmModeFreeResources(drmRes);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// "old" FrameBuffer initialization
-///////////////////////////////////////////////////////////////////////////////
+/* "old" FrameBuffer initialization */
 
 static void init_fb(void)
 {
@@ -341,7 +344,9 @@ static void init_fb(void)
     }
 
     /*
-     * Get actual resolution of the framebufffer, which is not always the same as the screen resolution.
+     * Get actual resolution of the framebufffer, which is not always the same
+     * as the screen resolution.
+     *
      * This prevents the screen from 'smearing' on 1366 x 768 displays
      */
     FrameBuffer_Xwidth       =
@@ -382,17 +387,22 @@ static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 static void ptrevent_touch(int buttonMask, int x, int y, rfbClientPtr cl)
 {
     UNUSED(cl);
-    /* Indicates either pointer movement or a pointer button press or release. The pointer is
-now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
-by bits 0 to 7 of button-mask respectively, 0 meaning up, 1 meaning down (pressed).
-On a conventional mouse, buttons 1, 2 and 3 correspond to the left, middle and right
-buttons on the mouse. On a wheel mouse, each step of the wheel upwards is represented
-by a press and release of button 4, and each step downwards is represented by
-a press and release of button 5.
-  From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
 
-    //tklog_debug("Got ptrevent touch: %04x (x=%d, y=%d)\n", buttonMask, x, y);
-    // Simulate left mouse event as touch event
+    /*
+     * Indicates either pointer movement or a pointer button press or release.
+     * The pointer is now at (x-position, y-position), and the current state of
+     * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
+     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
+     * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
+     * is represented by a press and release of button 4, and each step
+     * downwards is represented by a press and release of button 5.
+     *
+     * From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61
+     */
+
+    /* tklog_debug("Got ptrevent touch: %04x (x=%d, y=%d)\n", buttonMask, x, y); */
+    /* Simulate left mouse event as touch event */
     static int pressed = 0;
     if (buttonMask & 1) {
         if (pressed == 1) {
@@ -413,35 +423,44 @@ a press and release of button 5.
 static void ptrevent_mouse(int buttonMask, int x, int y, rfbClientPtr cl)
 {
     UNUSED(cl);
-    /* Indicates either pointer movement or a pointer button press or release. The pointer is
-now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
-by bits 0 to 7 of button-mask respectively, 0 meaning up, 1 meaning down (pressed).
-On a conventional mouse, buttons 1, 2 and 3 correspond to the left, middle and right
-buttons on the mouse. On a wheel mouse, each step of the wheel upwards is represented
-by a press and release of button 4, and each step downwards is represented by
-a press and release of button 5.
-  From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
 
-    //tklog_debug("Got mouse: %04x (x=%d, y=%d)\n", buttonMask, x, y);
-    // Simulate left mouse event as touch event
+    /*
+     * Indicates either pointer movement or a pointer button press or release.
+     * The pointer is now at (x-position, y-position), and the current state of
+     * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
+     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
+     * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
+     * is represented by a press and release of button 4, and each step
+     * downwards is represented by a press and release of button 5.
+     *
+     * From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61
+     */
+
+    /* tklog_debug("Got mouse: %04x (x=%d, y=%d)\n", buttonMask, x, y); */
+    /* Simulate left mouse event as touch event */
     injectMouseEvent(&var_scrinfo, buttonMask, x, y);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// VNC SERVER INITIALIZATION
-///////////////////////////////////////////////////////////////////////////////
+/* VNC SERVER INITIALIZATION */
 
 static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
                            rfbBool enable_mouse)
 {
     tklog_info("Initializing VNC server...\n");
 
-    // Allocate the VNC server buffer to be managed (not manipulated) by libvncserver.
+    /*
+     * Allocate the VNC server buffer to be managed (not manipulated) by
+     * libvncserver.
+     */
     RFB_FrameBuffer = malloc(FrameBufferSize);
     assert(RFB_FrameBuffer != NULL);
     memset(RFB_FrameBuffer, 0, FrameBufferSize);
 
-    // Allocate the comparison buffer for detecting drawing updates from frame to frame.
+    /*
+     * Allocate the comparison buffer for detecting drawing updates from frame
+     * to frame.
+     */
     CMP_FrameBuffer = malloc(FrameBufferSize);
     assert(CMP_FrameBuffer != NULL);
     memset(CMP_FrameBuffer, 0, FrameBufferSize);
@@ -463,7 +482,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
     if (enable_mouse)
         RFB_Server->ptrAddEvent = ptrevent_mouse;
 
-    // Set PixelFormat for server
+    /* Set PixelFormat for server */
     RFB_Server->serverFormat.bitsPerPixel = FrameBuffer_BitsPerPixel;
     RFB_Server->serverFormat.depth        = FrameBuffer_Depth;
     RFB_Server->serverFormat.bigEndian    = 0;
@@ -476,7 +495,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
     RFB_Server->serverFormat.greenShift   = var_scrinfo.green.offset;
     RFB_Server->serverFormat.blueShift    = var_scrinfo.blue.offset;
 
-    // Rotation adjustments
+    /* Rotation adjustments */
     switch (VNC_rotate) {
         case 0:
             RFB_Server->width = FrameBuffer_Xwidth;
@@ -503,12 +522,12 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
 
     rfbInitServer(RFB_Server);
 
-    // Mark as dirty since we haven't sent any updates at all yet.
+    /* Mark as dirty since we haven't sent any updates at all yet. */
     rfbMarkRectAsModified(RFB_Server, 0, 0, RFB_Server->width - 1,
                           RFB_Server->height - 1);
 }
 
-// sec
+/* sec */
 #define LOG_TIME 5
 
 int timeToLogFPS()
@@ -536,15 +555,13 @@ static void update_rec(uint16_t x, uint16_t y)
         maxY = y;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// VNC UPDATE SCREEN - 32 bits per pixel
-///////////////////////////////////////////////////////////////////////////////
+/* VNC UPDATE SCREEN - 32 bits per pixel */
 
 static void update_screen32()
 {
-    uint32_t *f = DRM_FrameBuffer; // -> framebuffer
-    uint32_t *c = CMP_FrameBuffer; // -> compare framebuffer
-    uint32_t *r = RFB_FrameBuffer; // -> remote framebuffer
+    uint32_t *f = DRM_FrameBuffer; /* -> framebuffer */
+    uint32_t *c = CMP_FrameBuffer; /* -> compare framebuffer */
+    uint32_t *r = RFB_FrameBuffer; /* -> remote framebuffer */
 
     minX = RFB_Server->width - 1;
     minY = RFB_Server->height -1;
@@ -707,11 +724,11 @@ int main(int argc, char **argv)
         tklog_fatal("It is not possible to use both mouse and touch device.\n");
         exit(EXIT_FAILURE);
     } else if (strlen(touch_device) > 0) {
-        // init touch only if there is a touch device defined
+        /* init touch only if there is a touch device defined */
         int ret = init_touch(touch_device, Touch_rotate);
         enable_touch = (ret > 0);
     } else if (strlen(mouse_device) > 0) {
-        // init mouse only if there is a mouse device defined
+        /* init mouse only if there is a mouse device defined */
         int ret = init_mouse(mouse_device, Touch_rotate);
         enable_mouse = (ret > 0);
     } else {

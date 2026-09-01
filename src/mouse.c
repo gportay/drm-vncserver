@@ -59,7 +59,7 @@ int init_mouse(const char *touch_device, int vnc_rotate)
         return 0;
     }
 
-    // REL_WHEEL_HI_RES
+    /* REL_WHEEL_HI_RES */
     if (ioctl(mousefd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
               evtype_bitmask) < 0) {
         tklog_error("%s  can't get evdev features: %s", touch_device,
@@ -76,7 +76,7 @@ int init_mouse(const char *touch_device, int vnc_rotate)
     }
 #endif
 
-    // Get the Range of X and Y
+    /* Get the Range of X and Y */
     if (ioctl(mousefd, EVIOCGABS(ABS_X), &info)) {
         tklog_error("cannot get ABS_X info, %s\n", strerror(errno));
         return 0;
@@ -104,14 +104,18 @@ void cleanup_mouse()
 void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
                       int y)
 {
-    /* Indicates either pointer movement or a pointer button press or release. The pointer is
-    now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
-    by bits 0 to 7 of button-mask respectively, 0 meaning up, 1 meaning down (pressed).
-    On a conventional mouse, buttons 1, 2 and 3 correspond to the left, middle and right
-    buttons on the mouse. On a wheel mouse, each step of the wheel upwards is represented
-    by a press and release of button 4, and each step downwards is represented by
-    a press and release of button 5.
-      From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
+    /*
+     * Indicates either pointer movement or a pointer button press or release.
+     * The pointer is now at (x-position, y-position), and the current state of
+     * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
+     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
+     * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
+     * is represented by a press and release of button 4, and each step
+     * downwards is represented by a press and release of button 5.
+     *
+     * From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61
+     */
     static map_t mouseButtonMap[] = {
         MAP(BTN_LEFT),
         MAP(BTN_MIDDLE),
@@ -144,9 +148,12 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
         break;
     }
 
-    // Calculate the final x and y
-    /* Fake touch screen always reports zero */
-    //???//if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0)
+    /*
+     * Calculate the final x and y
+     *
+     * Fake touch screen always reports zero
+     */
+    /* ??? if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0) */
     {
         x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
         y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
@@ -155,7 +162,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     memset(&ev, 0, sizeof(ev));
     struct timeval time;
 
-    // Send buttons state
+    /* Send buttons state */
     int buttonsChanged = last_buttonMask ^ buttonMask;
     if (buttonsChanged) {
         for (int bi = 0; bi < buttonsNumber; bi++) {
@@ -163,7 +170,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
             int isPressed = CHECK_BIT(buttonMask, bi);
 
             if (isChanged) {
-                // Then send a BTN_*
+                /* Then send a BTN_* */
                 gettimeofday(&time, 0);
                 ev.input_event_sec = time.tv_sec;
                 ev.input_event_usec = time.tv_usec;
@@ -183,7 +190,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
             wheel_tick--;
 
         if (wheel_tick) {
-            // Then send the WHEEL
+            /* Then send the WHEEL */
             gettimeofday(&time, 0);
             ev.input_event_sec = time.tv_sec;
             ev.input_event_usec = time.tv_usec;
@@ -211,7 +218,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     int dy = y - last_y;
 
     if (dx) {
-        // Then send the X
+        /* Then send the X */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -224,7 +231,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     }
 
     if (dy) {
-        // Then send the Y
+        /* Then send the Y */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -236,7 +243,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
         last_y = y;
     }
 
-    // Finally send the SYN
+    /* Finally send the SYN */
     gettimeofday(&time, 0);
     ev.input_event_sec = time.tv_sec;
     ev.input_event_usec = time.tv_usec;
