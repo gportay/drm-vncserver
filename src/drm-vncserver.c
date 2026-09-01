@@ -25,6 +25,7 @@
 
 #include <sys/stat.h>
 #include <sys/sysmacros.h> /* For makedev() */
+#include <limits.h>
 
 #include <fcntl.h>
 #include <linux/fb.h>
@@ -58,10 +59,10 @@ __ __| |           |  /_) |     ___|             |           |\n\
 #define SAMPLES_PER_PIXEL 3
 #define BYTES_PER_PIXEL 4
 
-static char fb_device[256] = "/dev/fb0";
-static char touch_device[256] = "";
-static char kbd_device[256] = "";
-static char mouse_device[256] = "";
+static char fb_device[PATH_MAX] = "/dev/fb0";
+static char touch_device[PATH_MAX] = "";
+static char kbd_device[PATH_MAX] = "";
+static char mouse_device[PATH_MAX] = "";
 
 static struct fb_var_screeninfo var_scrinfo;
 static struct fb_fix_screeninfo fix_scrinfo;
@@ -70,7 +71,7 @@ static uint32_t *RFB_FrameBuffer;
 static uint32_t *CMP_FrameBuffer;
 
 static int drmfd = -1;
-static char drmFB_device[256] = "/dev/dri/card0";
+static char drmFB_device[PATH_MAX] = "/dev/dri/card0";
 static uint32_t *DRM_FrameBuffer = MAP_FAILED;
 
 static int VNC_port = 5900;
