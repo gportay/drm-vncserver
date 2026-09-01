@@ -22,7 +22,7 @@
 #include "touch.h"
 #include "tklog.h"
 
-//static char TOUCH_DEVICE[256] = "/dev/input/event2";
+/* static char TOUCH_DEVICE[256] = "/dev/input/event2"; */
 static int touchfd = -1;
 
 static int xmin, xmax;
@@ -43,7 +43,7 @@ int init_touch(const char *touch_device, int vnc_rotate)
         tklog_error("cannot open touch device %s\n", touch_device);
         return 0;
     }
-    // Get the Range of X and Y
+    /* Get the Range of X and Y */
     if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
         tklog_error("cannot get ABS_X info, %s\n", strerror(errno));
         return 0;
@@ -91,9 +91,12 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         break;
     }
 
-    // Calculate the final x and y
-    /* Fake touch screen always reports zero */
-    //???//if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0)
+    /*
+     * Calculate the final x and y
+     *
+     * Fake touch screen always reports zero
+     */
+    /* ??? if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0) */
     {
         x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
         y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
@@ -130,7 +133,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
     }
 
     if (sendTouch) {
-        // Then send a ABS_MT_TRACKING_ID
+        /* Then send a ABS_MT_TRACKING_ID */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
 
@@ -141,7 +144,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
             tklog_error("write event failed, %s\n", strerror(errno));
         }
 
-        // Then send a BTN_TOUCH
+        /* Then send a BTN_TOUCH */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -154,7 +157,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
     }
 
     if (sendPos) {
-        // Then send a ABS_MT_POSITION_X
+        /* Then send a ABS_MT_POSITION_X */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -165,7 +168,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
             tklog_error("write event failed, %s\n", strerror(errno));
         }
 
-        // Then send a ABS_MT_POSITION_Y
+        /* Then send a ABS_MT_POSITION_Y */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -176,7 +179,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
             tklog_error("write event failed, %s\n", strerror(errno));
         }
 
-        // Then send the X
+        /* Then send the X */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -187,7 +190,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
             tklog_error("write event failed, %s\n", strerror(errno));
         }
 
-        // Then send the Y
+        /* Then send the Y */
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
         ev.input_event_usec = time.tv_usec;
@@ -199,7 +202,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         }
     }
 
-    // Finally send the SYN
+    /* Finally send the SYN */
     gettimeofday(&time, 0);
     ev.input_event_sec = time.tv_sec;
     ev.input_event_usec = time.tv_usec;
