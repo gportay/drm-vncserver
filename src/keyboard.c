@@ -34,7 +34,8 @@ int init_kbd(const char *kbd_device)
 {
     tklog_info("Initializing keyboard device %s ...\n", kbd_device);
     if ((kbdfd = open(kbd_device, O_RDWR)) == -1) {
-        tklog_error("cannot open kbd device %s\n", kbd_device);
+        tklog_error("Unable to open keyboard device %s (%d).\n", kbd_device,
+                    errno);
         return 0;
     } else {
         return 1;
@@ -61,7 +62,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.code = code;
     ev.value = value;
     if (write(kbdfd, &ev, sizeof(ev)) < 0)
-        tklog_error("write event failed, %s\n", strerror(errno));
+        tklog_error("Unable to write event (%d).\n", errno);
 
     /* Finally send the SYN */
     gettimeofday(&time, 0);
@@ -72,7 +73,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.code = 0;
     ev.value = 0;
     if (write(kbdfd, &ev, sizeof(ev)) < 0)
-        tklog_error("write event failed, %s\n", strerror(errno));
+        tklog_error("Unable to write event (%d).\n", errno);
 
     tklog_debug("injectKey (%d, %d)\n", code, value);
 }
