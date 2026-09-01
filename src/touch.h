@@ -1,7 +1,6 @@
 #pragma once
 
-enum MouseAction
-{
+enum MouseAction {
     MouseDrag = -1,
     MouseRelease,
     MousePress

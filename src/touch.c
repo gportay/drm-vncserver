@@ -22,7 +22,6 @@
 #include "touch.h"
 #include "tklog.h"
 
-
 //static char TOUCH_DEVICE[256] = "/dev/input/event2";
 static int touchfd = -1;
 
@@ -40,21 +39,18 @@ int init_touch(const char *touch_device, int vnc_rotate)
 {
     tklog_info("Initializing touch device %s ...\n", touch_device);
     struct input_absinfo info;
-    if ((touchfd = open(touch_device, O_RDWR)) == -1)
-    {
+    if ((touchfd = open(touch_device, O_RDWR)) == -1) {
         tklog_error("cannot open touch device %s\n", touch_device);
         return 0;
     }
     // Get the Range of X and Y
-    if (ioctl(touchfd, EVIOCGABS(ABS_X), &info))
-    {
+    if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
         tklog_error("cannot get ABS_X info, %s\n", strerror(errno));
         return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
-    if (ioctl(touchfd, EVIOCGABS(ABS_Y), &info))
-    {
+    if (ioctl(touchfd, EVIOCGABS(ABS_Y), &info)) {
         tklog_error("cannot get ABS_Y, %s\n", strerror(errno));
         return 0;
     }
@@ -69,19 +65,17 @@ int init_touch(const char *touch_device, int vnc_rotate)
 void cleanup_touch()
 {
     if (touchfd != -1)
-    {
         close(touchfd);
-    }
 }
 
-void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_screeninfo *scrinfo)
+void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
+                      struct fb_var_screeninfo *scrinfo)
 {
     struct input_event ev;
     int xin = x;
     int yin = y;
 
-    switch (rotate)
-    {
+    switch (rotate) {
     case 90:
         x = yin;
         y = scrinfo->yres - 1 - xin;
@@ -112,8 +106,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
     int touchValue;
     struct timeval time;
 
-    switch (mouseAction)
-    {
+    switch (mouseAction) {
     case MousePress:
         sendPos = true;
         sendTouch = true;
@@ -135,8 +128,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         exit(EXIT_FAILURE);
     }
 
-    if (sendTouch)
-    {
+    if (sendTouch) {
         // Then send a ABS_MT_TRACKING_ID
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
@@ -145,9 +137,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         ev.code = ABS_MT_TRACKING_ID;
         ev.value = trkIdValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
             tklog_error("write event failed, %s\n", strerror(errno));
-        }
 
         // Then send a BTN_TOUCH
         gettimeofday(&time, 0);
@@ -157,13 +147,10 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         ev.code = BTN_TOUCH;
         ev.value = touchValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
             tklog_error("write event failed, %s\n", strerror(errno));
-        }
     }
 
-    if (sendPos)
-    {
+    if (sendPos) {
         // Then send a ABS_MT_POSITION_X
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
@@ -172,9 +159,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         ev.code = ABS_MT_POSITION_X;
         ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
             tklog_error("write event failed, %s\n", strerror(errno));
-        }
 
         // Then send a ABS_MT_POSITION_Y
         gettimeofday(&time, 0);
@@ -184,9 +169,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         ev.code = ABS_MT_POSITION_Y;
         ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
             tklog_error("write event failed, %s\n", strerror(errno));
-        }
 
         // Then send the X
         gettimeofday(&time, 0);
@@ -196,9 +179,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         ev.code = ABS_X;
         ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
             tklog_error("write event failed, %s\n", strerror(errno));
-        }
 
         // Then send the Y
         gettimeofday(&time, 0);
@@ -208,9 +189,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         ev.code = ABS_Y;
         ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
             tklog_error("write event failed, %s\n", strerror(errno));
-        }
     }
 
     // Finally send the SYN
@@ -221,8 +200,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
     ev.code = 0;
     ev.value = 0;
     if (write(touchfd, &ev, sizeof(ev)) < 0)
-    {
         tklog_error("write event failed, %s\n", strerror(errno));
-    }
-    tklog_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n", xin, yin, x, y, mouseAction);
+    tklog_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n",
+                xin, yin, x, y, mouseAction);
 }
