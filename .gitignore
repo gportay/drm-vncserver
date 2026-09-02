@@ -1,3 +1,0 @@
-bin/drm-vncserver
-debug/*.o
-obj/*.o
