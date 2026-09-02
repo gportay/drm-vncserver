@@ -11,17 +11,19 @@ The code is based on a LibVNC example for Android:
 https://github.com/LibVNC/libvncserver/blob/ef971860233a9abfe66533381e82ed094815a83f/examples/androidvncserver.c
 and was imported from the following project https://github.com/ponty/framebuffer-vncserver/tree/ad5a7988ade60c3824b68e2908491df4c4164c57/src
 
-### build
+### build and install
 
 Dependency:
 
 apt-get install libvncserver-dev libdrm-dev
 
-Use the "make" command to build the binary in the bin/ directory.
+Run `make` to compile the binary from the `src/` directory.
+
+Run `make install` to install the binary to system.
 
 ### command-line help
 
-	./drm-vncserver [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]
+	drm-vncserver [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]
 	-p port                VNC port, default is 5900
 	-f device              drm device node, default is /dev/dri/card1
 	-k device              keyboard device node (example: /dev/input/event0)
@@ -62,7 +64,7 @@ Use the "make" command to build the binary in the bin/ directory.
 
 ### example with a MPC Force
 
-	root@force:~/drm-vncserver# bin/drm-vncserver -t /dev/input/event1 -k /dev/input/event2 -r 90 -F 10
+	drm-vncserver -t /dev/input/event1 -k /dev/input/event2 -r 90 -F 10
 	
 	__ __| |           |  /_) |     ___|             |           |
 	  |   __ \   _ \  ' /  | |  / |      _ \ __ \   |      _` | __ \   __|
