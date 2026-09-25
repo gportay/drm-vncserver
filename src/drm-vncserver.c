@@ -100,10 +100,10 @@ static unsigned int FrameBufferPixelSize;
 int verbose = 0;
 
 // Rectangle to be update by vnc client
-uint16_t minX = 0 ; 
-uint16_t minY = 0 ; 
+uint16_t minX = 0 ;
+uint16_t minY = 0 ;
 uint16_t maxX = 0 ;
-uint16_t maxY = 0 ; 
+uint16_t maxY = 0 ;
 
 #define UNUSED(x) (void)(x)
 
@@ -178,7 +178,7 @@ void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width, int16_t hei
             destOffset += height;
         }
     }
-} 
+}
 
 void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width, int16_t height)
 {
@@ -191,7 +191,7 @@ void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width, int16_t 
             dest[destOffset--] = src[srcOffset++];
         }
     }
-}  
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // DRM FrameBuffer initialization
@@ -200,7 +200,7 @@ static void init_drmFB(void)
 {
     drmModeFB           *drmFB;
     drmModeRes          *drmRes;
-    drmModeCrtc         *drmCrtc;    
+    drmModeCrtc         *drmCrtc;
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfoPtr  drmResolution = 0;
@@ -225,10 +225,10 @@ static void init_drmFB(void)
 
     if ( drmRes->count_connectors < 1 ) {
         tklog_fatal("No connector found for that device.\n");
-        exit(EXIT_FAILURE);   
+        exit(EXIT_FAILURE);
     }
     tklog_info("DRM device has %d connectors.\n", drmRes->count_connectors);
-   
+
     // We use the first connector because this vncserver is for MPC devices. No more connectors...
     drmConnector = drmModeGetConnectorCurrent(drmfd, drmRes->connectors[0]);
     if (!drmConnector) {
@@ -242,7 +242,7 @@ static void init_drmFB(void)
         tklog_fatal("No modes found for this connector.\n");
         exit(EXIT_FAILURE);
     }
-        
+
     // Get resolution (we do not check preferred because there is only one mode)
     drmResolution = &drmConnector->modes[0];
     tklog_info("Resolution : %ux%u@%u\n", drmResolution->hdisplay, drmResolution->vdisplay, drmResolution->vrefresh);
@@ -265,8 +265,8 @@ static void init_drmFB(void)
     }
 
     tklog_info("Connector %d is connected to encoder %d CRTC %d.\n",drmConnector->connector_id,drmConnector->encoder_id, drmCrtc->crtc_id);
-    
-      /* check framebuffer id */
+
+    /* check framebuffer id */
     drmFB = drmModeGetFB(drmfd, drmCrtc->buffer_id);
     if (drmFB == NULL) {
         tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
@@ -281,14 +281,14 @@ static void init_drmFB(void)
     struct drm_mode_map_dumb dumb_map;
 
     memset(&dumb_map, 0, sizeof(dumb_map));
-    dumb_map.handle = drmFB->handle;    
+    dumb_map.handle = drmFB->handle;
     dumb_map.offset = 0;
 
     if ( drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0 ) {
         tklog_fatal("DRM_IOCTL_MODE_MAP_DUMB failed (err=%d)\n", errno);
         exit(EXIT_FAILURE);
     }
- 
+
     // Recompute with drm infos..should be the same as fb0
     FrameBufferSize          = drmFB->pitch * drmFB->height;
     FrameBuffer_BitsPerPixel = drmFB->bpp;
@@ -303,8 +303,8 @@ static void init_drmFB(void)
     }
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",FrameBufferSize,DRM_FrameBuffer);
 
-    drmModeFreeEncoder(drmEncoder);
     drmModeFreeCrtc(drmCrtc);
+    drmModeFreeEncoder(drmEncoder);
     drmModeFreeConnector(drmConnector);
     drmModeFreeResources(drmRes);
 }
@@ -346,22 +346,22 @@ static void init_fb(void)
     FrameBuffer_BytesPP      = var_scrinfo.bits_per_pixel / 8;
     FrameBuffer_BitsPerPixel = var_scrinfo.bits_per_pixel;
     FrameBufferSize          = FrameBuffer_Xwidth * FrameBuffer_Yheight * FrameBuffer_BytesPP;
-    
+
 
     tklog_info(" fb xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
                (int)FrameBuffer_Xwidth, (int)FrameBuffer_Yheight,
                (int)var_scrinfo.xres_virtual, (int)var_scrinfo.yres_virtual,
                (int)var_scrinfo.xoffset, (int)var_scrinfo.yoffset,
                (int)var_scrinfo.bits_per_pixel);
-    
+
     tklog_info("  offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
                (int)var_scrinfo.red.offset, (int)var_scrinfo.red.length,
                (int)var_scrinfo.green.offset, (int)var_scrinfo.green.length,
                (int)var_scrinfo.blue.offset, (int)var_scrinfo.blue.length);
-    
+
     tklog_info("  frame buffer size : %d bytes\n",FrameBufferSize);
- 
-    close(fbfd); 
+
+    close(fbfd);
 }
 
 static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
@@ -391,7 +391,7 @@ a press and release of button 5.
     //tklog_debug("Got ptrevent touch: %04x (x=%d, y=%d)\n", buttonMask, x, y);
     // Simulate left mouse event as touch event
 
-    
+
     static int pressed = 0;
     if (buttonMask & 1)
     {
@@ -448,7 +448,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch, rfbBool 
     CMP_FrameBuffer = malloc(FrameBufferSize);
     assert(CMP_FrameBuffer != NULL);
     memset(CMP_FrameBuffer, 0, FrameBufferSize);
-    
+
     RFB_Server = rfbGetScreen(&argc, argv, FrameBuffer_Xwidth, FrameBuffer_Yheight, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, FrameBuffer_BytesPP);
     assert(RFB_Server != NULL);
 
@@ -460,8 +460,8 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch, rfbBool 
 
     RFB_Server->kbdAddEvent = keyevent;
     if (enable_touch) RFB_Server->ptrAddEvent = ptrevent_touch;
-    if (enable_mouse) RFB_Server->ptrAddEvent = ptrevent_mouse; 
-    
+    if (enable_mouse) RFB_Server->ptrAddEvent = ptrevent_mouse;
+
     // Set PixelFormat for server
     RFB_Server->serverFormat.bitsPerPixel = FrameBuffer_BitsPerPixel ;
     RFB_Server->serverFormat.depth        = FrameBuffer_Depth ;
@@ -469,13 +469,13 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch, rfbBool 
     RFB_Server->serverFormat.trueColour   = 1 ;
     RFB_Server->serverFormat.redMax       = 0x00FF ;
     RFB_Server->serverFormat.greenMax     = 0x00FF ;
-    RFB_Server->serverFormat.blueMax      = 0x00FF ; 
     RFB_Server->serverFormat.blueMax      = 0x00FF ;
- 
+    RFB_Server->serverFormat.blueMax      = 0x00FF ;
+
     RFB_Server->serverFormat.redShift     = var_scrinfo.red.offset ;
     RFB_Server->serverFormat.greenShift   = var_scrinfo.green.offset ;
-    RFB_Server->serverFormat.blueShift    = var_scrinfo.blue.offset ;  
-    
+    RFB_Server->serverFormat.blueShift    = var_scrinfo.blue.offset ;
+
     // Rotation adjustments
     switch (VNC_rotate) {
         case 0:
@@ -496,12 +496,12 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch, rfbBool 
             tklog_fatal("%d is an invalid rotation value. 0, 90 are correct values\n",VNC_rotate);
             exit(EXIT_FAILURE);
     }
-    
+
     rfbInitServer(RFB_Server);
 
     // Mark as dirty since we haven't sent any updates at all yet.
     rfbMarkRectAsModified(RFB_Server, 0, 0, RFB_Server->width - 1 , RFB_Server->height - 1);
-  
+
 }
 
 // sec
@@ -524,7 +524,7 @@ static void update_rec(uint16_t x,uint16_t y) {
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
-    if (y > maxY) maxY = y; 
+    if (y > maxY) maxY = y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -538,20 +538,20 @@ static void update_screen32()
     uint32_t *c = CMP_FrameBuffer;  // -> compare framebuffer
     uint32_t *r = RFB_FrameBuffer;  // -> remote framebuffer
 
-    minX = RFB_Server->width - 1; 
-    minY = RFB_Server->height -1 ; 
-    maxX = maxY = 0 ; 
- 
+    minX = RFB_Server->width - 1;
+    minY = RFB_Server->height -1 ;
+    maxX = maxY = 0 ;
+
     uint16_t x2, y2;
-    uint32_t destOffset ;    
+    uint32_t destOffset ;
     uint8_t Changed = 0;
 
     if ( VNC_rotate == 90 ) {
         for ( uint16_t y = 0 ; y < FrameBuffer_Yheight; y++) {
-            destOffset = 0;    
+            destOffset = 0;
             for ( uint16_t x = 0 ; x < FrameBuffer_Xwidth; x++) {
-                if ( *f != *c) {      
-                    *c = *f; 
+                if ( *f != *c) {
+                    *c = *f;
                     x2 = FrameBuffer_Yheight - 1 - y;
                     y2 = x;
                     r[destOffset + x2] = *f ;
@@ -560,25 +560,25 @@ static void update_screen32()
                 }
                 destOffset += RFB_Server->width ;
                 f++;  c++;
-            }   
+            }
         }
     }
- 
+
     else {
         for ( uint16_t y = 0 ; y < FrameBuffer_Yheight; y++) {
             for ( uint16_t x = 0 ; x < FrameBuffer_Xwidth; x++) {
-                if ( *f != *c) {      
-                    *r = *c = *f; 
+                if ( *f != *c) {
+                    *r = *c = *f;
                     update_rec(x,y);
                     Changed = 1;
                 }
                 f++;  c++; r++;
-            }   
+            }
         }
     }
-    
+
     if ( ! Changed) return;
-    
+
     rfbMarkRectAsModified(RFB_Server, minX, minY, maxX,maxY );
 }
 
@@ -635,7 +635,7 @@ int main(int argc, char **argv)
                     i++;
                     if (argv[i])
                         strcpy(mouse_device, argv[i]);
-                    break;                    
+                    break;
                 case 'k':
                     i++;
                     strcpy(kbd_device, argv[i]);
@@ -679,15 +679,15 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-   
+
     if ( FrameBuffer_Xwidth < FrameBuffer_Yheight  && VNC_rotate < 0 ) {
         tklog_info("Display auto rotation activated (90°)\n");
         VNC_rotate = 90;
-    } 
+    }
 
     if (VNC_rotate < 0 )  VNC_rotate = 0 ;
-    if (Touch_rotate < 0) Touch_rotate = VNC_rotate;   
-    
+    if (Touch_rotate < 0) Touch_rotate = VNC_rotate;
+
     if (strlen(kbd_device) > 0) {
         int ret = init_kbd(kbd_device);
         if (!ret) tklog_error("Keyboard device %s not available.\n", kbd_device);
@@ -708,7 +708,7 @@ int main(int argc, char **argv)
     else if(strlen(mouse_device) > 0) {
         // init mouse only if there is a mouse device defined
         int ret = init_mouse(mouse_device, Touch_rotate);
-        enable_mouse = (ret > 0);        
+        enable_mouse = (ret > 0);
     }
     else {
         tklog_warn("No touch or mouse device. You may use -t command line option.\n");
@@ -723,7 +723,7 @@ int main(int argc, char **argv)
     tklog_info("  target FPS         : %d\n", (int)Target_fps);
 
     init_fb_server(argc, argv, enable_touch, enable_mouse);
-    
+
     /* Implement our own event loop to detect changes in the framebuffer. */
     while (1)
     {
@@ -732,10 +732,10 @@ int main(int argc, char **argv)
         {
             if ( RFB_Server->clientHead != NULL ) update_screen32();
             else if (Target_fps > 0) usleep(1000 * 1000 / Target_fps);
-            usleep(10 * 1000);   
+            usleep(10 * 1000);
         }
     }
- 
+
     tklog_info("Cleaning up things...\n");
      close(drmfd);
     cleanup_kbd();
