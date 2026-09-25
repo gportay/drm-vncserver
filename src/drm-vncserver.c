@@ -71,6 +71,7 @@ static int drmfd = -1;
 static char drmFB_device[PATH_MAX] = "/dev/dri/card0";
 static uint32_t *DRM_FrameBuffer = MAP_FAILED;
 static int DRM_create_dumb = 0;
+static int DRM_use_dumb_buffer_api = 0;
 
 static int VNC_port = 5900;
 static int VNC_rotate = -1;
@@ -212,6 +213,7 @@ static void init_drmFB(void)
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfo     *drmResolution = NULL;
     uint32_t            handle;
+    uint64_t            offset;
     unsigned int        bpp;
     unsigned int        depth;
 
@@ -340,39 +342,66 @@ static void init_drmFB(void)
         exit(EXIT_FAILURE);
     }
 
-    /* Now this is how we dump the framebuffer. */
-    if (DRM_create_dumb) {
-        /* Create dumb FB */
-        struct drm_mode_create_dumb dumb_create;
+    /* Now this is how we dump the framebuffer */
+    if (DRM_use_dumb_buffer_api) {
+        int ret;
 
-        memset(&dumb_create, 0, sizeof(dumb_create));
-        dumb_create.width = drmFB->width;
-        dumb_create.height = drmFB->height;
-        dumb_create.bpp = bpp;
+        if (DRM_create_dumb) {
+            uint32_t pitch;
+            uint64_t size;
 
-        if (drmIoctl(drmfd, DRM_IOCTL_MODE_CREATE_DUMB, &dumb_create) != 0) {
-            tklog_fatal("Unable to ioctl (DRM_IOCTL_MODE_CREATE_DUMB, %d).\n", errno);
+            ret = drmModeCreateDumbBuffer(drmfd, drmFB->width, drmFB->height,
+                                          bpp, 0, &handle, &pitch, &size);
+            if (ret) {
+                tklog_fatal("Unable to create DRM dumb buffer (%d).\n", errno);
+                exit(EXIT_FAILURE);
+            }
+            tklog_info("DRM dumb frame buffer created handle %u pitch %u size %u.\n",
+                       handle, pitch, size);
+        }
+
+        ret = drmModeMapDumbBuffer(drmfd, handle, &offset);
+        if (ret) {
+            tklog_fatal("Unable to map DRM dumb buffer (%d).\n", errno);
             exit(EXIT_FAILURE);
         }
-        tklog_info("DRM dumb frame buffer created handle %u pitch %u size %u.\n", dumb_create.handle, dumb_create.pitch, dumb_create.size);
+    } else {
+        if (DRM_create_dumb) {
+            /* Create dumb FB */
+            struct drm_mode_create_dumb dumb_create;
 
-        handle = dumb_create.handle;
-    }
+            memset(&dumb_create, 0, sizeof(dumb_create));
+            dumb_create.width = drmFB->width;
+            dumb_create.height = drmFB->height;
+            dumb_create.bpp = bpp;
 
-    /* Structure to retrieve FB later */
-    struct drm_mode_map_dumb dumb_map;
+            if (drmIoctl(drmfd, DRM_IOCTL_MODE_CREATE_DUMB, &dumb_create) != 0) {
+                tklog_fatal("Unable to ioctl (DRM_IOCTL_MODE_CREATE_DUMB, %d).\n", errno);
+                exit(EXIT_FAILURE);
+            }
+            tklog_info("DRM dumb frame buffer created handle %u pitch %u size %u.\n",
+                       dumb_create.handle, dumb_create.pitch, dumb_create.size);
 
-    memset(&dumb_map, 0, sizeof(dumb_map));
-    dumb_map.handle = handle;
-    dumb_map.offset = 0;
+            handle = dumb_create.handle;
+        }
 
-    if (drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0) {
-        tklog_fatal("Unable to ioctl (DRM_IOCTL_MODE_MAP_DUMB, %d).\n", errno);
-        exit(EXIT_FAILURE);
+        /* Structure to retrieve FB later */
+        struct drm_mode_map_dumb dumb_map;
+
+        memset(&dumb_map, 0, sizeof(dumb_map));
+        dumb_map.handle = handle;
+        dumb_map.offset = 0;
+
+        if (drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0) {
+            tklog_fatal("Unable to ioctl (DRM_IOCTL_MODE_MAP_DUMB, %d).\n", errno);
+            exit(EXIT_FAILURE);
+        }
+
+        offset = dumb_map.offset;
     }
 
     DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
-                           MAP_SHARED, drmfd, dumb_map.offset);
+                           MAP_SHARED, drmfd, offset);
     if (DRM_FrameBuffer == MAP_FAILED) {
         tklog_fatal("Unable to mmap DRM frame buffer (%d).\n", errno);
         exit(EXIT_FAILURE);
@@ -605,7 +634,7 @@ static void update_screen32()
 
 static void print_usage(char **argv)
 {
-    printf("%s [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-C] [-v] [-h]\n"
+    printf("%s [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-C] [-D] [-v] [-h]\n"
            "-p port                VNC port, default is 5900\n"
            "-f device              drm device node, default is %s\n"
            "-k device              keyboard device node (example: /dev/input/event0)\n"
@@ -615,6 +644,7 @@ static void print_usage(char **argv)
            "-R degrees             touchscreen rotation, default is same as framebuffer rotation\n"
            "-F                     FPS Maximum target FPS. Default is 0, meaning unlimited FPS.\n"
            "-C                     create dumb framebuffer, default disabled.\n"
+           "-D                     use drm create dumb buffer API, default is disabled.\n"
            "-v                     verbose\n"
            "-h                     print this help\n",
            *argv, drmFB_device);
@@ -678,6 +708,9 @@ int main(int argc, char **argv)
                     break;
                 case 'C':
                     DRM_create_dumb = 1;
+                    break;
+                case 'D':
+                    DRM_use_dumb_buffer_api = 1;
                     break;
                 case 'v':
                     verbose = 1;
