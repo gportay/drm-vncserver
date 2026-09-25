@@ -77,7 +77,7 @@ int init_mouse(const char *touch_device, int vnc_rotate)
 		tklog_info("%s has hi res wheel.\n",touch_device);
 		is_wheel_hires = true;
 	}
-#endif 
+#endif
 
     // Get the Range of X and Y
     if (ioctl(mousefd, EVIOCGABS(ABS_X), &info))
@@ -118,7 +118,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     by a press and release of button 4, and each step downwards is represented by
     a press and release of button 5.
       From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
-    
+
     static map_t mouseButtonMap[] = {
         MAP(BTN_LEFT),
         MAP(BTN_MIDDLE),
@@ -130,8 +130,8 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     static int last_y;
     static int wheel_tick;
 	int last_wheel_tick = 0;
-    
-    
+
+
     struct input_event ev;
     int xin = x;
     int yin = y;
@@ -174,7 +174,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
 
             if(isChanged)
             {
-                // Then send a BTN_* 
+                // Then send a BTN_*
                 gettimeofday(&time, 0);
                 ev.input_event_sec = time.tv_sec;
                 ev.input_event_usec = time.tv_usec;
@@ -188,7 +188,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
                 tklog_info("Button %s=%04X\n",mouseButtonMap[bi].name, mouseButtonMap[bi].value);
             }
         }
-        
+
         if(CHECK_BIT(buttonMask,WHEEL_UP))
         {
             wheel_tick++;
@@ -212,7 +212,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
 				tklog_info("HI RES WHEEL %d\n", wheel_tick);
             	ev.code = REL_WHEEL_HI_RES;
             	ev.value = wheel_tick*120;
-#endif 
+#endif
 			}
 			else
 			{
