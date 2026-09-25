@@ -204,6 +204,11 @@ static void init_drmFB(void)
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfoPtr  drmResolution = 0;
+    uint64_t            size;
+    uint32_t            pitch;
+    uint32_t            handle;
+    uint64_t            offset;
+    int                 ret;
 
     // Open the DRM device
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
@@ -277,31 +282,31 @@ static void init_drmFB(void)
     tklog_info("FB is format %u width %u height %u.\n", drmFB->pixel_format,drmFB->width,drmFB->height);
 
     /* Now this is how we dump the framebuffer */
-    /* structure to retrieve FB later */
-    struct drm_mode_map_dumb dumb_map;
-
-    memset(&dumb_map, 0, sizeof(dumb_map));
-    dumb_map.handle = drmFB->handle;
-    dumb_map.offset = 0;
-
-    if ( drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0 ) {
-        tklog_fatal("DRM_IOCTL_MODE_MAP_DUMB failed (err=%d)\n", errno);
+    ret = drmModeCreateDumbBuffer(drmfd, drmFB->width, drmFB->height, 32, 0, &handle, &pitch, &size);
+    if (ret) {
+        tklog_fatal("Unable to create dumb buffer: %s.\n",strerror(errno));
         exit(EXIT_FAILURE);
     }
 
-    // Recompute with drm infos..should be the same as fb0
-    FrameBufferSize          = drmFB->pitch * drmFB->height;
-    FrameBuffer_BitsPerPixel = drmFB->bpp;
-    FrameBuffer_BytesPP      = drmFB->bpp / 8;
-    FrameBuffer_Depth        = drmFB->depth;
-    FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
+    ret = drmModeMapDumbBuffer(drmfd, handle, &offset);
+    if (ret) {
+        tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
-    DRM_FrameBuffer = mmap(0, FrameBufferSize, PROT_READ | PROT_WRITE, MAP_SHARED, drmfd, dumb_map.offset);
+    DRM_FrameBuffer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, drmfd, offset);
     if (DRM_FrameBuffer == MAP_FAILED) {
         tklog_fatal("DRM frame buffer mmap failed (err=%d)\n", errno);
         exit(EXIT_FAILURE);
     }
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",FrameBufferSize,DRM_FrameBuffer);
+
+    // Recompute with drm infos..should be the same as fb0
+    FrameBufferSize          = size;
+    FrameBuffer_BitsPerPixel = 32;
+    FrameBuffer_BytesPP      = 4;
+    FrameBuffer_Depth        = 24;
+    FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
 
     drmModeFreeCrtc(drmCrtc);
     drmModeFreeEncoder(drmEncoder);
