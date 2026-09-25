@@ -44,6 +44,8 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include <libdrm/drm_fourcc.h>
+
 #include "tklog.h"
 
 #define SERVER_NAME "The Kikgen Labs - MPC VNC Server"
@@ -84,6 +86,7 @@ static uint32_t *CMP_FrameBuffer;
 static int drmfd = -1;
 static char drmFB_device[256] = "/dev/dri/card0";
 static uint32_t *DRM_FrameBuffer = MAP_FAILED;
+static int DRM_create_fb = 0;
 
 static int VNC_port = 5900;
 static int VNC_rotate = -1;
@@ -292,6 +295,21 @@ static void init_drmFB(void)
     if (ret) {
         tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
         exit(EXIT_FAILURE);
+    }
+
+    if (DRM_create_fb) {
+        uint32_t buf_id;
+        uint32_t handles[4] = { handle };
+        uint32_t strides[4] = { pitch };
+        uint32_t offsets[4] = { 0 };
+        uint32_t pixel_format = DRM_FORMAT_ARGB8888;
+
+        /* Create a framebuffer */
+        ret = drmModeAddFB2(drmfd, drmFB->width, drmFB->height, pixel_format, handles, strides, offsets, &buf_id, 0);
+        if (ret) {
+            tklog_fatal("Unable to add frame buffer: %s.\n",strerror(errno));
+            exit(EXIT_FAILURE);
+        }
     }
 
     DRM_FrameBuffer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, drmfd, offset);
@@ -664,6 +682,9 @@ int main(int argc, char **argv)
                     i++;
                     if (argv[i])
                         Target_fps = atoi(argv[i]);
+                    break;
+                case 'C':
+                    DRM_create_fb = 1;
                     break;
                 case 'v':
                     verbose = 1;
