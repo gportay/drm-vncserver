@@ -198,7 +198,7 @@ void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width, int16_t 
 ///////////////////////////////////////////////////////////////////////////////
 static void init_drmFB(void)
 {
-    drmModeFB           *drmFB;
+    drmModeFB2          *drmFB;
     drmModeRes          *drmRes;
     drmModeCrtc         *drmCrtc;
     drmModeConnector    *drmConnector = NULL;
@@ -267,14 +267,14 @@ static void init_drmFB(void)
     tklog_info("Connector %d is connected to encoder %d CRTC %d.\n",drmConnector->connector_id,drmConnector->encoder_id, drmCrtc->crtc_id);
 
     /* check framebuffer id */
-    drmFB = drmModeGetFB(drmfd, drmCrtc->buffer_id);
+    drmFB = drmModeGetFB2(drmfd, drmCrtc->buffer_id);
     if (drmFB == NULL) {
         tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
         exit(EXIT_FAILURE);
     }
 
     tklog_info("Got framebuffer at CRTC: %d.\n", drmCrtc->crtc_id);
-    tklog_info("FB depth is %u pitch in bytes %u width %u height %u bpp %u.\n", drmFB->depth, drmFB->pitch,drmFB->width,drmFB->height,drmFB->bpp);
+    tklog_info("FB is format %u width %u height %u.\n", drmFB->pixel_format,drmFB->width,drmFB->height);
 
     /* Now this is how we dump the framebuffer */
     /* structure to retrieve FB later */
