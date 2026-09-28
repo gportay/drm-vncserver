@@ -44,6 +44,8 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include <libdrm/drm_fourcc.h>
+
 #include "tklog.h"
 
 #define SERVER_NAME "The Kikgen Labs - MPC VNC Server"
@@ -291,6 +293,17 @@ static void init_drmFB(void)
     ret = drmModeMapDumbBuffer(drmfd, handle, &offset);
     if (ret) {
         tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    uint32_t buf_id;
+    uint32_t handles[4] = { handle };
+    uint32_t strides[4] = { pitch };
+    uint32_t offsets[4] = { 0 };
+    uint32_t pixel_format = DRM_FORMAT_ARGB8888;
+    ret = drmModeAddFB2(drmfd, drmFB->width, drmFB->height, pixel_format, handles, strides, offsets, &buf_id, 0);
+    if (ret) {
+        tklog_fatal("Unable to add frame buffer: %s.\n",strerror(errno));
         exit(EXIT_FAILURE);
     }
 
