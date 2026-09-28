@@ -23,7 +23,7 @@ Run `make install` to install the binary to system.
 
 ### command-line help
 
-	./drm-vncserver [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-C] [-D] [-v] [-h]
+	./drm-vncserver [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-C] [-D] [-P] [-v] [-h]
 	-p port                VNC port, default is 5900
 	-f device              drm device node, default is /dev/dri/card1
 	-k device              keyboard device node (example: /dev/input/event0)
@@ -34,6 +34,7 @@ Run `make install` to install the binary to system.
 	-F                     FPS Maximum target FPS. Default is 0, meaning unlimited FPS.
 	-C                     create dumb framebuffer, default disabled.
 	-D                     use drm create dumb buffer API, default is disabled.
+	-P                     use drm prime API, default is disabled.
 	-v                     verbose
 	-h                     print this help
 	-rfbport port          TCP port for RFB protocol
