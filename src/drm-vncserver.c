@@ -82,7 +82,7 @@ static uint32_t *RFB_FrameBuffer;
 static uint32_t *CMP_FrameBuffer;
 
 static int drmfd = -1;
-static char drmFB_device[256] = "/dev/dri/card1";
+static char drmFB_device[256] = "/dev/dri/card0";
 static uint32_t *DRM_FrameBuffer = MAP_FAILED;
 
 static int VNC_port = 5900;
