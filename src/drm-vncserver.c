@@ -87,6 +87,7 @@ static int drmfd = -1;
 static char drmFB_device[256] = "/dev/dri/card0";
 static uint32_t *DRM_FrameBuffer = MAP_FAILED;
 static int DRM_create_fb = 0;
+static int DRM_prime_fd = 0;
 
 static int VNC_port = 5900;
 static int VNC_rotate = -1;
@@ -201,16 +202,11 @@ void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width, int16_t 
 ///////////////////////////////////////////////////////////////////////////////
 static void init_drmFB(void)
 {
-    drmModeFB2          *drmFB;
     drmModeRes          *drmRes;
     drmModeCrtc         *drmCrtc;
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfoPtr  drmResolution = 0;
-    uint64_t            size;
-    uint32_t            pitch;
-    uint32_t            handle;
-    uint64_t            offset;
     int                 ret;
 
     // Open the DRM device
@@ -274,57 +270,113 @@ static void init_drmFB(void)
 
     tklog_info("Connector %d is connected to encoder %d CRTC %d.\n",drmConnector->connector_id,drmConnector->encoder_id, drmCrtc->crtc_id);
 
-    /* check framebuffer id */
-    drmFB = drmModeGetFB2(drmfd, drmCrtc->buffer_id);
-    if (drmFB == NULL) {
-        tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
-        exit(EXIT_FAILURE);
-    }
+    if (DRM_prime_fd) {
+        drmModeFB *drmFB;
+        int       primefd;
 
-    tklog_info("Got framebuffer at CRTC: %d.\n", drmCrtc->crtc_id);
-    tklog_info("FB is format %u width %u height %u.\n", drmFB->pixel_format,drmFB->width,drmFB->height);
+        /* check framebuffer id */
+        drmFB = drmModeGetFB(drmfd, drmCrtc->buffer_id);
+        if (drmFB == NULL) {
+            tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
+            exit(EXIT_FAILURE);
+        }
+    
+        tklog_info("Got framebuffer at CRTC: %d.\n", drmCrtc->crtc_id);
+        tklog_info("FB depth is %u pitch in bytes %u width %u height %u bpp %u.\n", drmFB->depth, drmFB->pitch,drmFB->width,drmFB->height,drmFB->bpp);
 
-    /* Now this is how we dump the framebuffer */
-    ret = drmModeCreateDumbBuffer(drmfd, drmFB->width, drmFB->height, 32, 0, &handle, &pitch, &size);
-    if (ret) {
-        tklog_fatal("Unable to create dumb buffer: %s.\n",strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+        /* Convert between GEM handles and DMA-BUF file descriptors.
+         *
+         * Warning: since GEM handles are not reference-counted and are unique per
+         * DRM file description, the caller is expected to perform its own reference
+         * counting. drmPrimeFDToHandle is guaranteed to return the same handle for
+         * different FDs if they reference the same underlying buffer object. This
+         * could even be a buffer object originally created on the same DRM FD.
+         *
+         * When sharing a DRM FD with an API such as EGL or GBM, the caller must not
+         * use drmPrimeHandleToFD nor drmPrimeFDToHandle. A single user-space
+         * reference-counting implementation is necessary to avoid double-closing GEM
+         * handles.
+         *
+         * Two processes can't share the same DRM FD and both use it to create or
+         * import GEM handles, even when using a single user-space reference-counting
+         * implementation like GBM, because GBM doesn't share its state between
+         * processes.
+         */
+        /* convert GEM handle to DMA-BUF file descriptor */
+        ret = drmPrimeHandleToFD(drmfd, drmFB->handle, DRM_CLOEXEC | DRM_RDWR, &primefd);
+        if (ret) {
+            tklog_fatal("Unable to convert handle to file descriptor (%d).\n", errno);
+            exit(EXIT_FAILURE);
+        }
 
-    ret = drmModeMapDumbBuffer(drmfd, handle, &offset);
-    if (ret) {
-        tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
-        exit(EXIT_FAILURE);
-    }
+        DRM_FrameBuffer = mmap(NULL, drmFB->pitch * drmFB->height, PROT_READ, MAP_SHARED, primefd, 0);
+        if (DRM_FrameBuffer == MAP_FAILED) {
+            tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
+            close(primefd);
+            exit(EXIT_FAILURE);
+        }
+    
+        // Recompute with drm infos..should be the same as fb0
+        FrameBufferSize          = drmFB->height * drmFB->pitch;
+        FrameBuffer_BitsPerPixel = 32;
+        FrameBuffer_BytesPP      = 4;
+        FrameBuffer_Depth        = 24;
+        FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
+    } else {
+        drmModeFB2 *drmFB;
+        uint64_t   size;
+        uint32_t   pitch;
+        uint32_t   handle;
+        uint64_t   offset;
 
-    if (DRM_create_fb) {
+        /* check framebuffer id */
+        drmFB = drmModeGetFB2(drmfd, drmCrtc->buffer_id);
+        if (drmFB == NULL) {
+            tklog_fatal("Unable to get framebuffer for specified CRTC.\n");
+            exit(EXIT_FAILURE);
+        }
+    
+        tklog_info("Got framebuffer at CRTC: %d.\n", drmCrtc->crtc_id);
+        tklog_info("FB is format %u width %u height %u.\n", drmFB->pixel_format,drmFB->width,drmFB->height);
+
+        /* Now this is how we dump the framebuffer */
+        ret = drmModeCreateDumbBuffer(drmfd, drmFB->width, drmFB->height, 32, 0, &handle, &pitch, &size);
+        if (ret) {
+            tklog_fatal("Unable to create dumb buffer: %s.\n",strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
+        ret = drmModeMapDumbBuffer(drmfd, handle, &offset);
+        if (ret) {
+            tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    
         uint32_t buf_id;
         uint32_t handles[4] = { handle };
         uint32_t strides[4] = { pitch };
         uint32_t offsets[4] = { 0 };
         uint32_t pixel_format = DRM_FORMAT_ARGB8888;
-
-        /* Create a framebuffer */
         ret = drmModeAddFB2(drmfd, drmFB->width, drmFB->height, pixel_format, handles, strides, offsets, &buf_id, 0);
         if (ret) {
             tklog_fatal("Unable to add frame buffer: %s.\n",strerror(errno));
             exit(EXIT_FAILURE);
         }
+    
+        DRM_FrameBuffer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, drmfd, offset);
+        if (DRM_FrameBuffer == MAP_FAILED) {
+            tklog_fatal("DRM frame buffer mmap failed (err=%d)\n", errno);
+            exit(EXIT_FAILURE);
+        }
+        tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",FrameBufferSize,DRM_FrameBuffer);
+    
+        // Recompute with drm infos..should be the same as fb0
+        FrameBufferSize          = size;
+        FrameBuffer_BitsPerPixel = 32;
+        FrameBuffer_BytesPP      = 4;
+        FrameBuffer_Depth        = 24;
+        FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
     }
-
-    DRM_FrameBuffer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, drmfd, offset);
-    if (DRM_FrameBuffer == MAP_FAILED) {
-        tklog_fatal("DRM frame buffer mmap failed (err=%d)\n", errno);
-        exit(EXIT_FAILURE);
-    }
-    tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",FrameBufferSize,DRM_FrameBuffer);
-
-    // Recompute with drm infos..should be the same as fb0
-    FrameBufferSize          = size;
-    FrameBuffer_BitsPerPixel = 32;
-    FrameBuffer_BytesPP      = 4;
-    FrameBuffer_Depth        = 24;
-    FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
 
     drmModeFreeCrtc(drmCrtc);
     drmModeFreeEncoder(drmEncoder);
@@ -678,13 +730,16 @@ int main(int argc, char **argv)
                     if (argv[i])
                         Touch_rotate = atoi(argv[i]);
                     break;
-               case 'F':
+                case 'F':
                     i++;
                     if (argv[i])
                         Target_fps = atoi(argv[i]);
                     break;
                 case 'C':
                     DRM_create_fb = 1;
+                    break;
+                case 'P':
+                    DRM_prime_fd = 1;
                     break;
                 case 'v':
                     verbose = 1;
