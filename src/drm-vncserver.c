@@ -206,6 +206,7 @@ static void init_drmFB(void)
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfoPtr  drmResolution = 0;
+    int                 primefd;
     uint64_t            size;
     uint32_t            pitch;
     uint32_t            handle;
@@ -283,33 +284,35 @@ static void init_drmFB(void)
     tklog_info("Got framebuffer at CRTC: %d.\n", drmCrtc->crtc_id);
     tklog_info("FB is format %u width %u height %u.\n", drmFB->pixel_format,drmFB->width,drmFB->height);
 
-    /* Now this is how we dump the framebuffer */
-    ret = drmModeCreateDumbBuffer(drmfd, drmFB->width, drmFB->height, 32, 0, &handle, &pitch, &size);
+    /* Convert between GEM handles and DMA-BUF file descriptors.
+     *
+     * Warning: since GEM handles are not reference-counted and are unique per
+     * DRM file description, the caller is expected to perform its own reference
+     * counting. drmPrimeFDToHandle is guaranteed to return the same handle for
+     * different FDs if they reference the same underlying buffer object. This
+     * could even be a buffer object originally created on the same DRM FD.
+     *
+     * When sharing a DRM FD with an API such as EGL or GBM, the caller must not
+     * use drmPrimeHandleToFD nor drmPrimeFDToHandle. A single user-space
+     * reference-counting implementation is necessary to avoid double-closing GEM
+     * handles.
+     *
+     * Two processes can't share the same DRM FD and both use it to create or
+     * import GEM handles, even when using a single user-space reference-counting
+     * implementation like GBM, because GBM doesn't share its state between
+     * processes.
+     */
+    /* convert GEM handle to DMA-BUF file descriptor */
+    ret = drmPrimeHandleToFD(drmfd, drmFB->handles[0], DRM_CLOEXEC | DRM_RDWR, &primefd);
     if (ret) {
-        tklog_fatal("Unable to create dumb buffer: %s.\n",strerror(errno));
+        tklog_fatal("Unable to convert handle to file descriptor (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
-    ret = drmModeMapDumbBuffer(drmfd, handle, &offset);
-    if (ret) {
-        tklog_fatal("Unable to map dumb buffer: %s.\n",strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    uint32_t buf_id;
-    uint32_t handles[4] = { handle };
-    uint32_t strides[4] = { pitch };
-    uint32_t offsets[4] = { 0 };
-    uint32_t pixel_format = DRM_FORMAT_ARGB8888;
-    ret = drmModeAddFB2(drmfd, drmFB->width, drmFB->height, pixel_format, handles, strides, offsets, &buf_id, 0);
-    if (ret) {
-        tklog_fatal("Unable to add frame buffer: %s.\n",strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    DRM_FrameBuffer = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, drmfd, offset);
+    DRM_FrameBuffer = mmap(NULL, drmFB->pitches[0] * drmFB->height, PROT_READ, MAP_SHARED, primefd, 0);
     if (DRM_FrameBuffer == MAP_FAILED) {
         tklog_fatal("DRM frame buffer mmap failed (err=%d)\n", errno);
+        close(primefd);
         exit(EXIT_FAILURE);
     }
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",FrameBufferSize,DRM_FrameBuffer);
