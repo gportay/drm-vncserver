@@ -328,6 +328,13 @@ static void init_drmFB(void)
     drmModeFreeEncoder(drmEncoder);
     drmModeFreeConnector(drmConnector);
     drmModeFreeResources(drmRes);
+
+    fprintf(stderr, "%s:%i\n", __func__, __LINE__);
+    FILE *fp = fopen("fb.bin", "w");
+    if (fp) {
+        fwrite(DRM_FrameBuffer, 1, FrameBufferSize, fp);
+        fclose(fp);
+    }
 }
 
 
@@ -463,12 +470,12 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch, rfbBool 
     // Allocate the VNC server buffer to be managed (not manipulated) by libvncserver.
     RFB_FrameBuffer = malloc(FrameBufferSize);
     assert(RFB_FrameBuffer != NULL);
-    memset(RFB_FrameBuffer, 0, FrameBufferSize);
+    memset(RFB_FrameBuffer, 0xff, FrameBufferSize);
 
     // Allocate the comparison buffer for detecting drawing updates from frame to frame.
     CMP_FrameBuffer = malloc(FrameBufferSize);
     assert(CMP_FrameBuffer != NULL);
-    memset(CMP_FrameBuffer, 0, FrameBufferSize);
+    memset(CMP_FrameBuffer, 0x00, FrameBufferSize);
 
     RFB_Server = rfbGetScreen(&argc, argv, FrameBuffer_Xwidth, FrameBuffer_Yheight, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, FrameBuffer_BytesPP);
     assert(RFB_Server != NULL);
@@ -596,6 +603,13 @@ static void update_screen32()
                 f++;  c++; r++;
             }
         }
+    }
+
+    fprintf(stderr, "%s:%i\n", __func__, __LINE__);
+    FILE *fp = fopen("fb.bin", "w");
+    if (fp) {
+        fwrite(DRM_FrameBuffer, 1, FrameBufferSize, fp);
+        fclose(fp);
     }
 
     if ( ! Changed) return;
