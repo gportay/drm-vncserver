@@ -8,8 +8,8 @@ Working configurations: 32 bits/pixel with 90, 180, 270 degress rotation.
 Other resolutions are not implemented.
 
 The code is based on a LibVNC example for Android:
-https://github.com/LibVNC/libvncserver/blob/master/examples/androidvncserver.c 
-and was forked from the following project https://github.com/ponty/framebuffer-vncserver 
+https://github.com/LibVNC/libvncserver/blob/ef971860233a9abfe66533381e82ed094815a83f/examples/androidvncserver.c 
+and was imported from the following project https://github.com/ponty/framebuffer-vncserver/tree/ad5a7988ade60c3824b68e2908491df4c4164c57/src 
 
 ### build
 
