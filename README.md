@@ -8,8 +8,8 @@ Working configurations: 32 bits/pixel with 90, 180, 270 degress rotation.
 Other resolutions are not implemented.
 
 The code is based on a LibVNC example for Android:
-https://github.com/LibVNC/libvncserver/blob/master/examples/androidvncserver.c 
-and was forked from the following project https://github.com/ponty/framebuffer-vncserver 
+https://github.com/LibVNC/libvncserver/blob/ef971860233a9abfe66533381e82ed094815a83f/examples/androidvncserver.c 
+and was imported from the following project https://github.com/ponty/framebuffer-vncserver/tree/ad5a7988ade60c3824b68e2908491df4c4164c57/src 
 
 ### build
 
@@ -35,7 +35,7 @@ Use the "make" command to build the binary in the bin/ directory.
 
 ### example with a MPC Force 
 
-	root@force:~/drm-vncserver# bin/drm-vncserver -t /dev/input/event1 -k /dev/input/event2 -r 90
+	root@force:~/drm-vncserver# bin/drm-vncserver -t /dev/input/event1 -k /dev/input/event2 -r 90 -F 10
 	
 	__ __| |           |  /_) |     ___|             |           |
 	  |   __ \   _ \  ' /  | |  / |      _ \ __ \   |      _` | __ \   __|
@@ -75,4 +75,3 @@ Use the "make" command to build the binary in the bin/ directory.
 	[tkgl INFO    ]  Initializing VNC server...
 	13/12/2023 23:57:11 Listening for VNC connections on TCP port 5900
 	13/12/2023 23:57:11 Listening for VNC connections on TCP6 port 5900
-![image](https://github.com/TheKikGen/drm-vncserver/assets/35703467/cad3d4ef-2e15-4fab-8c09-799369f2db85)
