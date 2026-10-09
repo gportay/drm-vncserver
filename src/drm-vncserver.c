@@ -197,6 +197,83 @@ void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width, int16_t 
     }
 }
 
+/*
+ * DRM_FORMAT_XRGB8888 (XR24)
+ *
+ * En mémoire sur une machine little-endian :
+ *
+ *   B G R X | B G R X | ...
+ *
+ * Sortie RGBA8888 :
+ *
+ *   R G B A | R G B A | ...
+ */
+void drm_buffer_to_rgba8888(const void *src,
+                            void *dst,
+                            uint32_t width,
+                            uint32_t height,
+                            uint32_t pitch)
+{
+    const uint8_t *s = (const uint8_t *)src;
+    uint8_t       *d = (uint8_t *)dst;
+
+    for (uint32_t y = 0; y < height; y++) {
+        const uint8_t *src_line = s + y * pitch;
+        uint8_t       *dst_line = d + y * width * 4;
+
+        for (uint32_t x = 0; x < width; x++) {
+            const uint8_t *p = src_line + x * 4;
+            uint8_t       *q = dst_line + x * 4;
+
+            q[0] = p[2];    // R
+            q[1] = p[1];    // G
+            q[2] = p[0];    // B
+            q[3] = 0xFF;    // A
+        }
+    }
+}
+
+
+/*
+ * DRM_FORMAT_XRGB8888 (XR24)
+ *          ↓
+ *       RGB565
+ *
+ * Sortie mémoire little-endian :
+ *
+ *   low_byte high_byte | low_byte high_byte | ...
+ */
+void drm_buffer_to_rgb565(const void *src,
+                          void *dst,
+                          uint32_t width,
+                          uint32_t height,
+                          uint32_t pitch)
+{
+    const uint8_t *s = (const uint8_t *)src;
+    uint8_t       *d = (uint8_t *)dst;
+
+    for (uint32_t y = 0; y < height; y++) {
+        const uint8_t *src_line = s + y * pitch;
+        uint8_t       *dst_line = d + y * width * 2;
+
+        for (uint32_t x = 0; x < width; x++) {
+            const uint8_t *p = src_line + x * 4;
+
+            uint8_t B = p[0];
+            uint8_t G = p[1];
+            uint8_t R = p[2];
+
+            uint16_t rgb565 =
+                ((uint16_t)(R >> 3) << 11) |
+                ((uint16_t)(G >> 2) << 5)  |
+                ((uint16_t)(B >> 3));
+
+            dst_line[x * 2 + 0] = rgb565 & 0xFF;
+            dst_line[x * 2 + 1] = rgb565 >> 8;
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // DRM FrameBuffer initialization
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,6 +285,7 @@ static void init_drmFB(void)
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfoPtr  drmResolution = 0;
     int                 ret;
+FILE *fp;
 
     // Open the DRM device
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
@@ -315,13 +393,43 @@ static void init_drmFB(void)
             close(primefd);
             exit(EXIT_FAILURE);
         }
-    
+   
         // Recompute with drm infos..should be the same as fb0
         FrameBufferSize          = drmFB->height * drmFB->pitch;
-        FrameBuffer_BitsPerPixel = 32;
-        FrameBuffer_BytesPP      = 4;
-        FrameBuffer_Depth        = 24;
+        FrameBuffer_BitsPerPixel = drmFB->bpp;
+        FrameBuffer_BytesPP      = drmFB->bpp / 8;
+        FrameBuffer_Depth        = drmFB->depth;
         FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
+
+uint8_t *rgba = malloc(drmFB->width * drmFB->height * 4);
+uint8_t *rgb565 = malloc(drmFB->width * drmFB->height * 2);
+
+if (!rgba || !rgb565) {
+    /* erreur */
+}
+
+drm_buffer_to_rgba8888(DRM_FrameBuffer,
+                       rgba,
+                       drmFB->width,
+                       drmFB->height,
+                       drmFB->pitch);
+    fprintf(stderr, "%s:%i\n", __func__, __LINE__);
+    fp = fopen("fb.rgba8888", "w");
+    if (fp) {
+        fwrite(rgba, 1, drmFB->width * drmFB->height * 4, fp);
+        fclose(fp);
+    }
+drm_buffer_to_rgb565(DRM_FrameBuffer,
+                     rgb565,
+                     drmFB->width,
+                     drmFB->height,
+                     drmFB->pitch);
+    fprintf(stderr, "%s:%i\n", __func__, __LINE__);
+    fp = fopen("fb.rgb565", "w");
+    if (fp) {
+        fwrite(rgb565, 1, drmFB->width * drmFB->height * 2, fp);
+        fclose(fp);
+    }
     } else {
         drmModeFB2 *drmFB;
         uint64_t   size;
@@ -384,7 +492,7 @@ static void init_drmFB(void)
     drmModeFreeResources(drmRes);
 
     fprintf(stderr, "%s:%i\n", __func__, __LINE__);
-    FILE *fp = fopen("fb.bin", "w");
+    fp = fopen("fb.bin", "w");
     if (fp) {
         fwrite(DRM_FrameBuffer, 1, FrameBufferSize, fp);
         fclose(fp);
