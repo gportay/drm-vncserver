@@ -586,7 +586,7 @@ static void update_screen32()
 
 void print_usage(char **argv)
 {
-    fprintf(stdout,"%s [-f device] [-p port] [-t touchscreen] [-m touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
+    fprintf(stdout,"%s [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
                "-p port: VNC port, default is 5900\n"
                "-f device: drm device node, default is %s\n"
                "-k device: keyboard device node (example: /dev/input/event0)\n"
