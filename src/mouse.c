@@ -90,7 +90,7 @@ int init_mouse(const char *touch_device, int vnc_rotate)
     ymax = info.maximum;
     rotate = vnc_rotate;
 
-    tklog_info("  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax);
+    tklog_info("  x:(%d %d)  y:(%d %d)\n", xmin, xmax, ymin, ymax);
     return 1;
 }
 
