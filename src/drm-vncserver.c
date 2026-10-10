@@ -304,6 +304,7 @@ static void init_drmFB(void)
     }
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n", FrameBufferSize, DRM_FrameBuffer);
 
+    drmModeFreeFB(drmFB);
     drmModeFreeCrtc(drmCrtc);
     drmModeFreeEncoder(drmEncoder);
     drmModeFreeConnector(drmConnector);
