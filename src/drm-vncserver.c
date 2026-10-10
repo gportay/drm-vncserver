@@ -28,7 +28,6 @@
 #include <limits.h>
 
 #include <fcntl.h>
-#include <linux/fb.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -60,13 +59,9 @@ __ __| |           |  /_) |     ___|             |           |\n\
 #define SAMPLES_PER_PIXEL 3
 #define BYTES_PER_PIXEL 4
 
-static char fb_device[PATH_MAX] = "/dev/fb0";
 static char touch_device[PATH_MAX] = "";
 static char kbd_device[PATH_MAX] = "";
 static char mouse_device[PATH_MAX] = "";
-
-static struct fb_var_screeninfo var_scrinfo;
-static struct fb_fix_screeninfo fix_scrinfo;
 
 static uint32_t *RFB_FrameBuffer;
 static uint32_t *CMP_FrameBuffer;
@@ -80,10 +75,17 @@ static int VNC_rotate = -1;
 static int Touch_rotate = -1;
 static int Target_fps = 0;
 static rfbScreenInfoPtr RFB_Server;
+static unsigned int FrameBuffer_BitsPerPixel;
 static unsigned int FrameBuffer_Depth;
 static unsigned int FrameBuffer_Size;
 static unsigned int FrameBuffer_Xwidth;
 static unsigned int FrameBuffer_Yheight;
+static unsigned int FrameBuffer_RedMax;
+static unsigned int FrameBuffer_GreenMax;
+static unsigned int FrameBuffer_BlueMax;
+static unsigned int FrameBuffer_RedShift;
+static unsigned int FrameBuffer_GreenShift;
+static unsigned int FrameBuffer_BlueShift;
 int verbose = 0;
 
 /* Rectangle to be update by vnc client */
@@ -151,14 +153,20 @@ static void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width,
 
 /* DRM FrameBuffer initialization */
 
+struct color_info {
+    uint8_t size;
+    uint8_t offset;
+};
+
 struct pixel_info {
     uint32_t format_pixel;
     unsigned int depth;
     unsigned int bpp;
+    struct color_info rgba[4];
 };
 
 static const struct pixel_info format_pixels[] = {
-    { DRM_FORMAT_XRGB8888, 24, 32 },
+    { DRM_FORMAT_XRGB8888, 24, 32, {{ 8, 16 }, { 8, 8 }, { 8, 0 }, { 0, 0 }} },
 };
 
 static char *pixel_format_fourcc(uint32_t pixel_format)
@@ -175,7 +183,7 @@ static char *pixel_format_fourcc(uint32_t pixel_format)
 }
 
 static int get_format_pixel_info(uint32_t format_pixel, unsigned int *depth,
-                                 unsigned int *bpp)
+                                 unsigned int *bpp, struct color_info rgba[4])
 {
     unsigned int i;
 
@@ -183,6 +191,10 @@ static int get_format_pixel_info(uint32_t format_pixel, unsigned int *depth,
         if (format_pixels[i].format_pixel == format_pixel) {
             *depth = format_pixels[i].depth;
             *bpp = format_pixels[i].bpp;
+            rgba[0] = format_pixels[i].rgba[0];
+            rgba[1] = format_pixels[i].rgba[1];
+            rgba[2] = format_pixels[i].rgba[2];
+            rgba[3] = format_pixels[i].rgba[3];
             return 0;
         }
     }
@@ -199,6 +211,7 @@ static void init_drmFB(void)
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfo     *drmResolution = NULL;
+    struct color_info   rgba[4];
     unsigned int        bpp;
     unsigned int        depth;
 
@@ -323,12 +336,37 @@ static void init_drmFB(void)
     }
 
     /* Recompute with drm infos..should be the same as fb0 */
-    if (get_format_pixel_info(drmFB->pixel_format, &depth, &bpp) != 0) {
+    if (get_format_pixel_info(drmFB->pixel_format, &depth, &bpp, rgba) != 0) {
         tklog_fatal("Unsupported format %x (%d).\n", drmFB->pixel_format, errno);
         exit(EXIT_FAILURE);
     }
-    FrameBuffer_Size  = drmFB->pitches[0] * drmFB->height;
-    FrameBuffer_Depth = depth;
+    FrameBuffer_Size         = drmFB->pitches[0] * drmFB->height;
+    FrameBuffer_Xwidth       = drmFB->width;
+    FrameBuffer_Yheight      = drmFB->height;
+    FrameBuffer_BitsPerPixel = bpp;
+    FrameBuffer_Depth        = depth;
+    FrameBuffer_RedMax       = (1 << rgba[0].size) - 1;
+    FrameBuffer_GreenMax     = (1 << rgba[1].size) - 1;
+    FrameBuffer_BlueMax      = (1 << rgba[2].size) - 1;
+    FrameBuffer_RedShift     = rgba[0].offset;
+    FrameBuffer_GreenShift   = rgba[1].offset;
+    FrameBuffer_BlueShift    = rgba[2].offset;
+    tklog_info(" fb xres=%d, yres=%d, bpp=%d\n",
+               (int)FrameBuffer_Xwidth, (int)FrameBuffer_Yheight,
+               (int)FrameBuffer_BitsPerPixel);
+
+    tklog_info("  offset:length red=%d:%d green=%d:%d blue=%d:%d\n",
+               (int)FrameBuffer_RedShift, (int)FrameBuffer_RedMax,
+               (int)FrameBuffer_GreenShift, (int)FrameBuffer_GreenMax,
+               (int)FrameBuffer_BlueShift, (int)FrameBuffer_BlueMax);
+
+    tklog_info("  frame buffer size : %d bytes\n", FrameBuffer_Size);
+
+    if (bpp != 32) {
+        tklog_fatal("Only 32 bits framebuffer is supported. Current Bits Per Pixel is %d.\n",
+                    bpp);
+        exit(EXIT_FAILURE);
+    }
 
     DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
@@ -344,62 +382,6 @@ static void init_drmFB(void)
     drmModeFreeEncoder(drmEncoder);
     drmModeFreeConnector(drmConnector);
     drmModeFreeResources(drmRes);
-}
-
-/* "old" FrameBuffer initialization */
-
-static void init_fb(void)
-{
-    int fbfd = -1;
-
-    if ((fbfd = open(fb_device, O_RDONLY)) == -1) {
-        tklog_fatal("Unable to open fb device %s (%d)\n", fb_device, errno);
-        exit(EXIT_FAILURE);
-    }
-    tklog_info("FB device %s successfully opened.\n", fb_device);
-
-    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &var_scrinfo) != 0) {
-        tklog_fatal("Unable to ioctl (FBIOGET_VSCREENINFO, %d).\n", errno);
-        exit(EXIT_FAILURE);
-    }
-
-    if (ioctl(fbfd, FBIOGET_FSCREENINFO, &fix_scrinfo) != 0) {
-        tklog_fatal("Unable to ioctl (FBIOGET_FSCREENINFO, %d).\n", errno);
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-     * Get actual resolution of the framebufffer, which is not always the same
-     * as the screen resolution.
-     *
-     * This prevents the screen from 'smearing' on 1366 x 768 displays
-     */
-    FrameBuffer_Xwidth  =
-                  fix_scrinfo.line_length / (var_scrinfo.bits_per_pixel / 8.0);
-    FrameBuffer_Yheight = var_scrinfo.yres;
-    FrameBuffer_Size    =
-         FrameBuffer_Xwidth * FrameBuffer_Yheight * var_scrinfo.bits_per_pixel;
-
-    tklog_info(" fb xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
-               (int)FrameBuffer_Xwidth, (int)FrameBuffer_Yheight,
-               (int)var_scrinfo.xres_virtual, (int)var_scrinfo.yres_virtual,
-               (int)var_scrinfo.xoffset, (int)var_scrinfo.yoffset,
-               (int)var_scrinfo.bits_per_pixel);
-
-    tklog_info("  offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
-               (int)var_scrinfo.red.offset, (int)var_scrinfo.red.length,
-               (int)var_scrinfo.green.offset, (int)var_scrinfo.green.length,
-               (int)var_scrinfo.blue.offset, (int)var_scrinfo.blue.length);
-
-    tklog_info("  frame buffer size : %d bytes\n", FrameBuffer_Size);
-
-    if (var_scrinfo.bits_per_pixel != 32) {
-        tklog_fatal("Only 32 bits framebuffer is supported. Current Bits Per Pixel is %d.\n",
-                    var_scrinfo.bits_per_pixel);
-        exit(EXIT_FAILURE);
-    }
-
-    close(fbfd);
 }
 
 static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
@@ -433,16 +415,16 @@ static void ptrevent_touch(int buttonMask, int x, int y, rfbClientPtr cl)
     static int pressed = 0;
     if (buttonMask & 1) {
         if (pressed == 1) {
-            injectTouchEvent(MouseDrag, x, y, &var_scrinfo);
+            injectTouchEvent(MouseDrag, x, y, FrameBuffer_Xwidth, FrameBuffer_Yheight);
         } else {
             pressed = 1;
-            injectTouchEvent(MousePress, x, y, &var_scrinfo);
+            injectTouchEvent(MousePress, x, y, FrameBuffer_Xwidth, FrameBuffer_Yheight);
         }
     }
     if (buttonMask == 0) {
         if (pressed == 1) {
             pressed = 0;
-            injectTouchEvent(MouseRelease, x, y, &var_scrinfo);
+            injectTouchEvent(MouseRelease, x, y, FrameBuffer_Xwidth, FrameBuffer_Yheight);
         }
     }
 }
@@ -465,7 +447,7 @@ static void ptrevent_mouse(int buttonMask, int x, int y, rfbClientPtr cl)
      */
 
     /* Simulate left mouse event as touch event */
-    injectMouseEvent(&var_scrinfo, buttonMask, x, y);
+    injectMouseEvent(buttonMask, x, y, FrameBuffer_Xwidth, FrameBuffer_Yheight);
 }
 
 /* VNC SERVER INITIALIZATION */
@@ -509,17 +491,16 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
         RFB_Server->ptrAddEvent = ptrevent_mouse;
 
     /* Set PixelFormat for server */
-    RFB_Server->serverFormat.bitsPerPixel = BYTES_PER_PIXEL * BITS_PER_SAMPLE;
+    RFB_Server->serverFormat.bitsPerPixel = FrameBuffer_BitsPerPixel;
     RFB_Server->serverFormat.depth        = FrameBuffer_Depth;
     RFB_Server->serverFormat.bigEndian    = 0;
     RFB_Server->serverFormat.trueColour   = 1;
-    RFB_Server->serverFormat.redMax       = 0x00FF;
-    RFB_Server->serverFormat.greenMax     = 0x00FF;
-    RFB_Server->serverFormat.blueMax      = 0x00FF;
-    RFB_Server->serverFormat.blueMax      = 0x00FF;
-    RFB_Server->serverFormat.redShift     = var_scrinfo.red.offset;
-    RFB_Server->serverFormat.greenShift   = var_scrinfo.green.offset;
-    RFB_Server->serverFormat.blueShift    = var_scrinfo.blue.offset;
+    RFB_Server->serverFormat.redMax       = FrameBuffer_RedMax;
+    RFB_Server->serverFormat.greenMax     = FrameBuffer_GreenMax;
+    RFB_Server->serverFormat.blueMax      = FrameBuffer_BlueMax;
+    RFB_Server->serverFormat.redShift     = FrameBuffer_RedShift;
+    RFB_Server->serverFormat.greenShift   = FrameBuffer_GreenShift;
+    RFB_Server->serverFormat.blueShift    = FrameBuffer_BlueShift;
 
     /* Rotation adjustments */
     switch (VNC_rotate) {
@@ -702,7 +683,6 @@ int main(int argc, char **argv)
 
     tklog_info("VNCSERVER STARTING...\n");
 
-    init_fb();
     init_drmFB();
 
     if (FrameBuffer_Xwidth < FrameBuffer_Yheight && VNC_rotate < 0) {
@@ -753,7 +733,6 @@ int main(int argc, char **argv)
 
     tklog_info("VNC (TKGL) server initialized with the following parameters :\n");
     tklog_info("  width,height       : %d,%d\n", (int)FrameBuffer_Xwidth, (int)FrameBuffer_Yheight);
-    tklog_info("  bpp                : %d\n", (int)var_scrinfo.bits_per_pixel);
     tklog_info("  port               : %d\n", (int)VNC_port);
     tklog_info("  rotate             : %d\n", (int)VNC_rotate);
     tklog_info("  mouse/touch rotate : %d\n", (int)Touch_rotate);

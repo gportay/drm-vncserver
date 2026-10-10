@@ -5,7 +5,6 @@
 #include <sys/ioctl.h>
 
 #include <fcntl.h>
-#include <linux/fb.h>
 #include <linux/input.h>
 
 #include <errno.h>

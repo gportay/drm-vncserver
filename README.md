@@ -75,10 +75,6 @@ Run `make install` to install the binary to system.
 	(c) The KikGen Labs.
 	
 	[tkgl INFO    ]  VNCSERVER STARTING...
-	[tkgl INFO    ]  FB device /dev/fb0 successfully opened.
-	[tkgl INFO    ]   fb xres=800, yres=480, xresv=800, yresv=480, xoffs=0, yoffs=0, bpp=16
-	[tkgl INFO    ]    offset:length red=11:5 green=5:6 blue=0:5
-	[tkgl INFO    ]    frame buffer size : 1536000 bytes
 	[tkgl INFO    ]  DRM device /dev/dri/card0 sucessfully opened.
 	[tkgl INFO    ]  DRM device has 1 connectors.
 	[tkgl INFO    ]  DRM Device Name: LVDS-1
@@ -88,13 +84,15 @@ Run `make install` to install the binary to system.
 	[tkgl INFO    ]  Connector 51 is connected to encoder 50 CRTC 38.
 	[tkgl INFO    ]  Got framebuffer at CRTC: 38.
 	[tkgl INFO    ]  FB is format XR24 width 800 height 480.
+	[tkgl INFO    ]   fb xres=800, yres=480, bpp=32
+	[tkgl INFO    ]    offset:length red=16:255 green=8:255 blue=0:255
+	[tkgl INFO    ]    frame buffer size : 1536000 bytes
 	[tkgl INFO    ]  DRM frame buffer map of 1536000 bytes allocated at 0xb675f000.
 	[tkgl INFO    ]  Initializing keyboard device /dev/input/event1 ...
 	[tkgl INFO    ]  Initializing touch device /dev/input/event0 ...
 	[tkgl INFO    ]    x:(0 4095)  y:(0 4095)
 	[tkgl INFO    ]  VNC (TKGL) server initialized with the following parameters :
 	[tkgl INFO    ]    width,height       : 800,480
-	[tkgl INFO    ]    bpp                : 16
 	[tkgl INFO    ]    port               : 5900
 	[tkgl INFO    ]    rotate             : 90
 	[tkgl INFO    ]    mouse/touch rotate : 90

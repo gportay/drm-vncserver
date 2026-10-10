@@ -2,4 +2,4 @@
 
 int init_mouse(const char *mouse_device, int vnc_rotate);
 void cleanup_mouse();
-void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, int y);
+void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres);
