@@ -96,7 +96,6 @@ static unsigned int FrameBuffer_Depth;
 static unsigned int FrameBufferSize;
 static unsigned int FrameBuffer_Xwidth;
 static unsigned int FrameBuffer_Yheight;
-static unsigned int FrameBufferPixelSize;
 int verbose = 0;
 
 /* Rectangle to be update by vnc client */
@@ -294,7 +293,6 @@ static void init_drmFB(void)
     FrameBuffer_BitsPerPixel = drmFB->bpp;
     FrameBuffer_BytesPP      = drmFB->bpp / 8;
     FrameBuffer_Depth        = drmFB->depth;
-    FrameBufferPixelSize     = FrameBufferSize / FrameBuffer_BytesPP;
 
     DRM_FrameBuffer = mmap(0, FrameBufferSize, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
