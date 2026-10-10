@@ -156,7 +156,7 @@ static void init_drmFB(void)
     drmModeCrtc         *drmCrtc;
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
-    drmModeModeInfoPtr  drmResolution = 0;
+    drmModeModeInfo     *drmResolution = NULL;
 
     /* Open the DRM device */
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
