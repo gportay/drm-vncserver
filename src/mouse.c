@@ -101,8 +101,7 @@ void cleanup_mouse()
     }
 }
 
-void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
-                      int y)
+void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
 {
     /*
      * Indicates either pointer movement or a pointer button press or release.
@@ -136,21 +135,21 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     switch (rotate) {
     case 90:
         x = yin;
-        y = scrinfo->yres - 1 - xin;
+        y = yres - 1 - xin;
         break;
     case 180:
-        x = scrinfo->xres - 1 - xin;
-        y = scrinfo->yres - 1 - yin;
+        x = xres - 1 - xin;
+        y = yres - 1 - yin;
         break;
     case 270:
-        x = scrinfo->xres - 1 - yin;
+        x = xres - 1 - yin;
         y = xin;
         break;
     }
 
     /* Calculate the final x and y */
-    x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
-    y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
+    x = xmin + (x * (xmax - xmin)) / xres;
+    y = ymin + (y * (ymax - ymin)) / yres;
 
     memset(&ev, 0, sizeof(ev));
     struct timeval time;
