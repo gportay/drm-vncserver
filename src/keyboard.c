@@ -10,7 +10,6 @@
 #include <sys/sysmacros.h> /* For makedev() */
 
 #include <fcntl.h>
-#include <linux/fb.h>
 #include <linux/input.h>
 
 #include <assert.h>

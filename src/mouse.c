@@ -10,7 +10,6 @@
 #include <sys/sysmacros.h> /* For makedev() */
 
 #include <fcntl.h>
-#include <linux/fb.h>
 #include <linux/input.h>
 
 #include <assert.h>
@@ -108,7 +107,7 @@ void cleanup_mouse()
     }
 }
 
-void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, int y)
+void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
 {
     /* Indicates either pointer movement or a pointer button press or release. The pointer is
     now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
@@ -140,14 +139,14 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     {
     case 90:
         x = yin;
-        y = scrinfo->yres - 1 - xin;
+        y = yres - 1 - xin;
         break;
     case 180:
-        x = scrinfo->xres - 1 - xin;
-        y = scrinfo->yres - 1 - yin;
+        x = xres - 1 - xin;
+        y = yres - 1 - yin;
         break;
     case 270:
-        x = scrinfo->xres - 1 - yin;
+        x = xres - 1 - yin;
         y = xin;
         break;
     }
@@ -156,8 +155,8 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     /* Fake touch screen always reports zero */
     //???//if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0)
     {
-        x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
-        y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
+        x = xmin + (x * (xmax - xmin)) / xres;
+        y = ymin + (y * (ymax - ymin)) / yres;
     }
 
     memset(&ev, 0, sizeof(ev));

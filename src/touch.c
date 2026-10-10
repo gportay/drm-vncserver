@@ -10,7 +10,6 @@
 #include <sys/sysmacros.h> /* For makedev() */
 
 #include <fcntl.h>
-#include <linux/fb.h>
 #include <linux/input.h>
 
 #include <assert.h>
@@ -74,7 +73,7 @@ void cleanup_touch()
     }
 }
 
-void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_screeninfo *scrinfo)
+void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres, int yres)
 {
     struct input_event ev;
     int xin = x;
@@ -84,14 +83,14 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
     {
     case 90:
         x = yin;
-        y = scrinfo->yres - 1 - xin;
+        y = yres - 1 - xin;
         break;
     case 180:
-        x = scrinfo->xres - 1 - xin;
-        y = scrinfo->yres - 1 - yin;
+        x = xres - 1 - xin;
+        y = yres - 1 - yin;
         break;
     case 270:
-        x = scrinfo->xres - 1 - yin;
+        x = xres - 1 - yin;
         y = xin;
         break;
     }
@@ -100,8 +99,8 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
     /* Fake touch screen always reports zero */
     //???//if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0)
     {
-        x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
-        y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
+        x = xmin + (x * (xmax - xmin)) / xres;
+        y = ymin + (y * (ymax - ymin)) / yres;
     }
 
     memset(&ev, 0, sizeof(ev));
