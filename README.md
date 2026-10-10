@@ -75,10 +75,6 @@ Run `make install` to install the binary to system.
 	(c) The KikGen Labs.
 	
 	[tkgl INFO    ]  VNCSERVER STARTING...
-	[tkgl INFO    ]  FB device /dev/fb0 successfully opened.
-	[tkgl INFO    ]   fb xres=1920, yres=1200, xresv=1920, yresv=1200, xoffs=0, yoffs=0, bpp=32
-	[tkgl INFO    ]    offset:length red=16:8 green=8:8 blue=0:8 
-	[tkgl INFO    ]    frame buffer size : 73728000 bytes
 	[tkgl INFO    ]  DRM device /dev/dri/card1 sucessfully opened.
 	[tkgl INFO    ]  DRM device has 6 connectors.
 	[tkgl INFO    ]  DRM Device Name: eDP-1
@@ -88,18 +84,20 @@ Run `make install` to install the binary to system.
 	[tkgl INFO    ]  Connector 507 is connected to encoder 506 CRTC 504.
 	[tkgl INFO    ]  Got framebuffer at CRTC: 504.
 	[tkgl INFO    ]  FB is format XR24 width 1920 height 1200.
-	[tkgl INFO    ]  FB has modifier Intel Color Control Surface with Clear Color (CCS) for DG2 render compression.
 	[tkgl INFO    ]  FB has 3 plane(s):
 	[tkgl INFO    ]  Plane 0 has handle 1 pitch 7680 offset 0
 	[tkgl INFO    ]  Plane 1 has handle 1 pitch 960 offset 9338880
 	[tkgl INFO    ]  Plane 2 has handle 1 pitch 64 offset 9375744
+	[tkgl INFO    ]  FB has modifier Intel Color Control Surface with Clear Color (CCS) for DG2 render compression.
+	[tkgl INFO    ]   fb xres=1920, yres=1200, bpp=32
+	[tkgl INFO    ]    offset:length red=16:255 green=8:255 blue=0:255 
+	[tkgl INFO    ]    frame buffer size : 9216000 bytes
 	[tkgl INFO    ]  DRM frame buffer map of 9216000 bytes allocated at 0x7070aacaa000.
 	[tkgl INFO    ]  Initializing keyboard device /dev/input/event3 ...
 	[tkgl INFO    ]  Initializing touch device /dev/input/event5 ...
 	[tkgl INFO    ]    x:(0 3364)  y:(0 1669) 
 	[tkgl INFO    ]  VNC (TKGL) server initialized with the following parameters :
 	[tkgl INFO    ]    width,height       : 1920,1200
-	[tkgl INFO    ]    bpp                : 32
 	[tkgl INFO    ]    port               : 5900
 	[tkgl INFO    ]    rotate             : 90
 	[tkgl INFO    ]    mouse/touch rotate : 90
