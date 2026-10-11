@@ -93,7 +93,7 @@ static rfbScreenInfoPtr RFB_Server;
 static size_t FrameBuffer_BytesPP;
 static unsigned int FrameBuffer_BitsPerPixel;
 static unsigned int FrameBuffer_Depth;
-static unsigned int FrameBufferSize;
+static unsigned int FrameBuffer_Size;
 static unsigned int FrameBuffer_Xwidth;
 static unsigned int FrameBuffer_Yheight;
 int verbose = 0;
@@ -298,19 +298,19 @@ static void init_drmFB(void)
     }
 
     /* Recompute with drm infos..should be the same as fb0 */
-    FrameBufferSize          = drmFB->pitch * drmFB->height;
+    FrameBuffer_Size         = drmFB->pitch * drmFB->height;
     FrameBuffer_BitsPerPixel = drmFB->bpp;
     FrameBuffer_BytesPP      = drmFB->bpp / 8;
     FrameBuffer_Depth        = drmFB->depth;
 
-    DRM_FrameBuffer = mmap(0, FrameBufferSize, PROT_READ | PROT_WRITE,
+    DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
     if (DRM_FrameBuffer == MAP_FAILED) {
         tklog_fatal("Unable to mmap DRM frame buffer (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",
-               FrameBufferSize, DRM_FrameBuffer);
+               FrameBuffer_Size, DRM_FrameBuffer);
 
     drmModeFreeCrtc(drmCrtc);
     drmModeFreeEncoder(drmEncoder);
@@ -351,7 +351,7 @@ static void init_fb(void)
     FrameBuffer_Yheight      = var_scrinfo.yres;
     FrameBuffer_BytesPP      = var_scrinfo.bits_per_pixel / 8;
     FrameBuffer_BitsPerPixel = var_scrinfo.bits_per_pixel;
-    FrameBufferSize          =
+    FrameBuffer_Size         =
                 FrameBuffer_Xwidth * FrameBuffer_Yheight * FrameBuffer_BytesPP;
 
     tklog_info(" fb xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
@@ -365,7 +365,7 @@ static void init_fb(void)
                (int)var_scrinfo.green.offset, (int)var_scrinfo.green.length,
                (int)var_scrinfo.blue.offset, (int)var_scrinfo.blue.length);
 
-    tklog_info("  frame buffer size : %d bytes\n", FrameBufferSize);
+    tklog_info("  frame buffer size : %d bytes\n", FrameBuffer_Size);
 
     close(fbfd);
 }
@@ -449,17 +449,17 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
      * Allocate the VNC server buffer to be managed (not manipulated) by
      * libvncserver.
      */
-    RFB_FrameBuffer = malloc(FrameBufferSize);
+    RFB_FrameBuffer = malloc(FrameBuffer_Size);
     assert(RFB_FrameBuffer != NULL);
-    memset(RFB_FrameBuffer, 0, FrameBufferSize);
+    memset(RFB_FrameBuffer, 0, FrameBuffer_Size);
 
     /*
      * Allocate the comparison buffer for detecting drawing updates from frame
      * to frame.
      */
-    CMP_FrameBuffer = malloc(FrameBufferSize);
+    CMP_FrameBuffer = malloc(FrameBuffer_Size);
     assert(CMP_FrameBuffer != NULL);
-    memset(CMP_FrameBuffer, 0, FrameBufferSize);
+    memset(CMP_FrameBuffer, 0, FrameBuffer_Size);
 
     RFB_Server = rfbGetScreen(&argc, argv, FrameBuffer_Xwidth,
                               FrameBuffer_Yheight, BITS_PER_SAMPLE,
@@ -498,7 +498,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
             RFB_Server->height = FrameBuffer_Yheight;
             RFB_Server->paddedWidthInBytes =
                                       FrameBuffer_Xwidth * FrameBuffer_BytesPP;
-            memcpy(RFB_FrameBuffer, DRM_FrameBuffer, FrameBufferSize);
+            memcpy(RFB_FrameBuffer, DRM_FrameBuffer, FrameBuffer_Size);
             break;
 
         case 90:
