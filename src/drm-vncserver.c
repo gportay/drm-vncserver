@@ -137,20 +137,6 @@ const char *connector_type_name(unsigned int type)
 
 /* FrameBuffer rotation functions */
 
-void rotateMatrix270(uint32_t * dest, uint32_t * src, uint16_t width,
-                     int16_t height)
-{
-    uint32_t srcOffset = 0;
-    uint32_t destOffset1 = (width - 1) * height;
-    for (uint16_t y = 0; y < height; y++) {
-        uint32_t destOffset =   y + destOffset1;
-        for (uint16_t x = 0; x < width; x++) {
-            dest[destOffset] = src[srcOffset++];
-            destOffset -= height;
-        }
-    }
-}
-
 void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width,
                     int16_t height)
 {
@@ -160,18 +146,6 @@ void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width,
         for (uint16_t x = 0; x < width; x++) {
             dest[destOffset] = src[srcOffset++];
             destOffset += height;
-        }
-    }
-}
-
-void rotateMatrix180(uint32_t  * dest, uint32_t  * src, uint16_t width,
-                     int16_t height)
-{
-    uint32_t srcOffset = 0;
-    uint32_t destOffset =  width  * height -1;
-    for (uint16_t y = 0; y < height; y++) {
-        for (uint16_t x = 0; x < width; x++) {
-            dest[destOffset--] = src[srcOffset++];
         }
     }
 }
