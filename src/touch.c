@@ -14,7 +14,6 @@
 #include "touch.h"
 #include "tklog.h"
 
-/* static char TOUCH_DEVICE[256] = "/dev/input/event2"; */
 static int touchfd = -1;
 
 static int xmin, xmax;
@@ -83,16 +82,9 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         break;
     }
 
-    /*
-     * Calculate the final x and y
-     *
-     * Fake touch screen always reports zero
-     */
-    /* ??? if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0) */
-    {
-        x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
-        y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
-    }
+    /* Calculate the final x and y */
+    x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
+    y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
 
     memset(&ev, 0, sizeof(ev));
 

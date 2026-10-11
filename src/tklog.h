@@ -34,12 +34,6 @@ static void tklog(int level, const char *fmt, ...)
 {
     va_list ap;
 
-    /* time_t timestamp = time(NULL); */
-    /* struct tm * now = localtime(&timestamp); */
-
-    /* char buftime[16]; */
-    /* buftime[strftime(buftime, sizeof(buftime), "%H:%M:%S", now)] = '\0'; */
-
     if (level >= LOG_ERROR)
         fprintf(stderr, "[tkgl %-8s]  ", tklog_level_strings[level]);
     else
