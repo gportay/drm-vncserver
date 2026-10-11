@@ -288,7 +288,7 @@ static void init_fb(void)
         tklog_fatal("Unable to open fb device %s (%d)\n", fb_device, errno);
         exit(EXIT_FAILURE);
     }
-    tklog_info("FB device %s successfully opened.\n");
+    tklog_info("FB device %s successfully opened.\n", fb_device);
 
     if (ioctl(fbfd, FBIOGET_VSCREENINFO, &var_scrinfo) != 0) {
         tklog_fatal("Unable to ioctl (FBIOGET_VSCREENINFO, %d).\n", errno);
