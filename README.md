@@ -2,7 +2,7 @@
 
 VNC server for Linux DRM framebuffer devices.
 
-This project allows remote access to embedded Linux systems with a direct frame buffer rendering, notably Akai MPC devices.
+This project allows remote access to Linux systems with a direct frame buffer rendering.
 
 Working configurations: 32 bits/pixel with 90 degress rotation.
 Other resolutions are not implemented.
@@ -62,9 +62,9 @@ Run `make install` to install the binary to system.
 	-listenv6 ipv6addr     listen for IPv6 connections only on network interface with
 	                       addr ipv6addr. '-listen localhost' and hostname work too.
 
-### example with a MPC Force
+### example with a i915 based laptop
 
-	root@force:~/drm-vncserver# src/drm-vncserver -t /dev/input/event1 -k /dev/input/event2 -r 90 -F 10
+	# src/drm-vncserver -f /dev/dri/card1 -t /dev/input/event5 -k /dev/input/event3 -r 90 -F 10
 	
 	__ __| |           |  /_) |     ___|             |           |
 	  |   __ \   _ \  ' /  | |  / |      _ \ __ \   |      _` | __ \   __|
@@ -76,31 +76,34 @@ Run `make install` to install the binary to system.
 	
 	[tkgl INFO    ]  VNCSERVER STARTING...
 	[tkgl INFO    ]  FB device /dev/fb0 successfully opened.
-	[tkgl INFO    ]   fb xres=800, yres=1280, xresv=800, yresv=3840, xoffs=0, yoffs=0, bpp=32
-	[tkgl INFO    ]    offset:length red=16:8 green=8:8 blue=0:8
-	[tkgl INFO    ]    frame buffer size : 4096000 bytes
-	[tkgl INFO    ]  DRM device /dev/dri/card0 sucessfully opened.
-	[tkgl INFO    ]  DRM device has 1 connectors.
-	[tkgl INFO    ]  DRM Device Name: DSI-1
-	[tkgl INFO    ]  Encoder        : 49
-	[tkgl INFO    ]  Resolution : 800x1280@59
-	[tkgl INFO    ]  (ht: 970 hs: 876 he: 894 hskew: 0, vt: 1290  vs: 1284 ve: 1286 vscan: 0, flags: 0x0 )
-	[tkgl INFO    ]  Connector 50 is connected to encoder 49 CRTC 44.
-	[tkgl INFO    ]  Got framebuffer at CRTC: 44.
-	[tkgl INFO    ]  FB depth is 24 pitch 3200 width 800 height 1280 bpp 32.
-	[tkgl INFO    ]  DRM frame buffer map of 4096000 bytes allocated at 0xb6266000.
-	Initializing keyboard device /dev/input/event2 ...
-	cannot open kbd device /dev/input/event2
-	[tkgl ***ERROR]  Keyboard device /dev/input/event2 not available.
-	Initializing touch device /dev/input/event1 ...
-	  x:(0 2048)  y:(0 2048)
+	[tkgl INFO    ]   fb xres=1920, yres=1200, xresv=1920, yresv=1200, xoffs=0, yoffs=0, bpp=32
+	[tkgl INFO    ]    offset:length red=16:8 green=8:8 blue=0:8 
+	[tkgl INFO    ]    frame buffer size : 73728000 bytes
+	[tkgl INFO    ]  DRM device /dev/dri/card1 sucessfully opened.
+	[tkgl INFO    ]  DRM device has 6 connectors.
+	[tkgl INFO    ]  DRM Device Name: eDP-1
+	[tkgl INFO    ]  Encoder        : 506
+	[tkgl INFO    ]  Resolution : 1920x1200@60
+	[tkgl INFO    ]  (ht: 2104 hs: 1936 he: 1952 hskew: 0, vt: 1236  vs: 1203 ve: 1217 vscan: 0, flags: 0xA <P>)
+	[tkgl INFO    ]  Connector 507 is connected to encoder 506 CRTC 504.
+	[tkgl INFO    ]  Got framebuffer at CRTC: 504.
+	[tkgl INFO    ]  FB is format XR24 width 1920 height 1200.
+	[tkgl INFO    ]  FB has modifier Intel Color Control Surface with Clear Color (CCS) for DG2 render compression.
+	[tkgl INFO    ]  FB has 3 plane(s):
+	[tkgl INFO    ]  Plane 0 has handle 1 pitch 7680 offset 0
+	[tkgl INFO    ]  Plane 1 has handle 1 pitch 960 offset 9338880
+	[tkgl INFO    ]  Plane 2 has handle 1 pitch 64 offset 9375744
+	[tkgl INFO    ]  DRM frame buffer map of 9216000 bytes allocated at 0x7070aacaa000.
+	[tkgl INFO    ]  Initializing keyboard device /dev/input/event3 ...
+	[tkgl INFO    ]  Initializing touch device /dev/input/event5 ...
+	[tkgl INFO    ]    x:(0 3364)  y:(0 1669) 
 	[tkgl INFO    ]  VNC (TKGL) server initialized with the following parameters :
-	[tkgl INFO    ]    width,height       : 800,1280
+	[tkgl INFO    ]    width,height       : 1920,1200
 	[tkgl INFO    ]    bpp                : 32
 	[tkgl INFO    ]    port               : 5900
 	[tkgl INFO    ]    rotate             : 90
 	[tkgl INFO    ]    mouse/touch rotate : 90
 	[tkgl INFO    ]    target FPS         : 10
 	[tkgl INFO    ]  Initializing VNC server...
-	13/12/2023 23:57:11 Listening for VNC connections on TCP port 5900
-	13/12/2023 23:57:11 Listening for VNC connections on TCP6 port 5900
+	11/10/2026 15:00:57 Listening for VNC connections on TCP port 5900
+	11/10/2026 15:00:57 Listening for VNC connections on TCP6 port 5900	
