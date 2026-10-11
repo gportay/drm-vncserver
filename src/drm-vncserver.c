@@ -54,9 +54,6 @@ __ __| |           |  /_) |     ___|             |           |\n\
  _|  _| |_|\\___| _|\\_\\_|_|\\_\\\\____|\\___|_|  _| _____|\\__,_|_.__/ ____/\n\
 "
 
-
-#define LOG_FPS
-
 #define BITS_PER_SAMPLE 8
 #define SAMPLES_PER_PIXEL 3
 #define BYTES_PER_PIXEL 4
@@ -521,22 +518,6 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
     /* Mark as dirty since we haven't sent any updates at all yet. */
     rfbMarkRectAsModified(RFB_Server, 0, 0, RFB_Server->width - 1,
                           RFB_Server->height - 1);
-}
-
-/* sec */
-#define LOG_TIME 5
-
-int timeToLogFPS()
-{
-    static struct timeval now = {0, 0}, then = {0, 0};
-    double elapsed, dnow, dthen;
-    gettimeofday(&now, NULL);
-    dnow = now.tv_sec + (now.tv_usec / 1000000.0);
-    dthen = then.tv_sec + (then.tv_usec / 1000000.0);
-    elapsed = dnow - dthen;
-    if (elapsed > LOG_TIME)
-        memcpy((char *)&then, (char *)&now, sizeof(struct timeval));
-    return elapsed > LOG_TIME;
 }
 
 static void update_rec(uint16_t x, uint16_t y)
