@@ -147,16 +147,9 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
         break;
     }
 
-    /*
-     * Calculate the final x and y
-     *
-     * Fake touch screen always reports zero
-     */
-    /* ??? if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0) */
-    {
-        x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
-        y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
-    }
+    /* Calculate the final x and y */
+    x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
+    y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
 
     memset(&ev, 0, sizeof(ev));
     struct timeval time;
