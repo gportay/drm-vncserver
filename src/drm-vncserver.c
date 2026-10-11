@@ -44,9 +44,11 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include <libdrm/drm_fourcc.h>
+
 #include "tklog.h"
 
-#define SERVER_NAME "The Kikgen Labs - MPC VNC Server"
+#define SERVER_NAME "The Kikgen Labs - VNC Server"
 #define TKGL_LOGO "\
 __ __| |           |  /_) |     ___|             |           |\n\
   |   __ \\   _ \\  ' /  | |  / |      _ \\ __ \\   |      _` | __ \\   __|\n\
@@ -149,14 +151,56 @@ static void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width,
 
 /* DRM FrameBuffer initialization */
 
+struct pixel_info {
+    uint32_t format_pixel;
+    unsigned int depth;
+    unsigned int bpp;
+};
+
+static const struct pixel_info format_pixels[] = {
+    { DRM_FORMAT_XRGB8888, 24, 32 },
+};
+
+static char *pixel_format_fourcc(uint32_t pixel_format)
+{
+    static char fourcc[5];
+
+    fourcc[0] = (pixel_format >> 0)  & 0xFF;
+    fourcc[1] = (pixel_format >> 8)  & 0xFF;
+    fourcc[2] = (pixel_format >> 16) & 0xFF;
+    fourcc[3] = (pixel_format >> 24) & 0xFF;
+    fourcc[4] = 0;
+
+    return fourcc;
+}
+
+static int get_format_pixel_info(uint32_t format_pixel, unsigned int *depth,
+                                 unsigned int *bpp)
+{
+    unsigned int i;
+
+    for (i = 0; i < sizeof(format_pixels) / sizeof(format_pixels[0]); i++) {
+        if (format_pixels[i].format_pixel == format_pixel) {
+            *depth = format_pixels[i].depth;
+            *bpp = format_pixels[i].bpp;
+            return 0;
+        }
+    }
+
+    errno = EINVAL;
+    return -1;
+}
+
 static void init_drmFB(void)
 {
-    drmModeFB           *drmFB;
+    drmModeFB2          *drmFB;
     drmModeRes          *drmRes;
     drmModeCrtc         *drmCrtc;
     drmModeConnector    *drmConnector = NULL;
     drmModeEncoder      *drmEncoder = NULL;
     drmModeModeInfo     *drmResolution = NULL;
+    unsigned int        bpp;
+    unsigned int        depth;
 
     /* Open the DRM device */
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
@@ -180,10 +224,7 @@ static void init_drmFB(void)
     }
     tklog_info("DRM device has %d connectors.\n", drmRes->count_connectors);
 
-    /*
-     * We use the first connector because this vncserver is for MPC devices.
-     * No more connectors...
-     */
+    /* We use the first connector */
     drmConnector = drmModeGetConnectorCurrent(drmfd, drmRes->connectors[0]);
     if (!drmConnector) {
         tklog_fatal("Unable to get DRM device connector[0].\n");
@@ -231,16 +272,40 @@ static void init_drmFB(void)
                drmCrtc->crtc_id);
 
     /* Check framebuffer id */
-    drmFB = drmModeGetFB(drmfd, drmCrtc->buffer_id);
+    drmFB = drmModeGetFB2(drmfd, drmCrtc->buffer_id);
     if (drmFB == NULL) {
         tklog_fatal("Unable to retrieve DRM frame buffer (%d).\n", errno);
         exit(EXIT_FAILURE);
     }
 
     tklog_info("Got framebuffer at CRTC: %d.\n", drmCrtc->crtc_id);
-    tklog_info("FB depth is %u pitch in bytes %u width %u height %u bpp %u.\n",
-               drmFB->depth, drmFB->pitch, drmFB->width, drmFB->height,
-               drmFB->bpp);
+    tklog_info("FB is format %s width %u height %u.\n",
+               pixel_format_fourcc(drmFB->pixel_format), drmFB->width,
+               drmFB->height);
+
+    /* Frame buffer has multiple planes */
+    if (drmFB->handles[1]) {
+        int i;
+        int planes = 1;
+
+        for (i = 1; i < 4; i++)
+            if (drmFB->handles[i])
+                planes++;
+
+        tklog_info("FB has %d plane(s):\n", planes);
+        for (i = 0; i < 4; i++)
+            if (drmFB->handles[i])
+                tklog_info("Plane %d has handle %u pitch %u offset %u\n", i,
+                           drmFB->handles[i], drmFB->pitches[i],
+                           drmFB->offsets[i]);
+    }
+
+    /* Refuse non linear modifier */
+    if (drmFB->modifier != DRM_FORMAT_MOD_LINEAR) {
+        tklog_fatal("Only linear modifier is supported. Current Modifier is 0x%016llx.\n",
+                    (unsigned long long)drmFB->modifier);
+        exit(EXIT_FAILURE);
+    }
 
     /*
      * Now this is how we dump the framebuffer
@@ -249,7 +314,7 @@ static void init_drmFB(void)
     struct drm_mode_map_dumb dumb_map;
 
     memset(&dumb_map, 0, sizeof(dumb_map));
-    dumb_map.handle = drmFB->handle;
+    dumb_map.handle = drmFB->handles[0];
     dumb_map.offset = 0;
 
     if (drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0) {
@@ -258,8 +323,12 @@ static void init_drmFB(void)
     }
 
     /* Recompute with drm infos..should be the same as fb0 */
-    FrameBuffer_Size  = drmFB->pitch * drmFB->height;
-    FrameBuffer_Depth = drmFB->depth;
+    if (get_format_pixel_info(drmFB->pixel_format, &depth, &bpp) != 0) {
+        tklog_fatal("Unsupported format %x (%d).\n", drmFB->pixel_format, errno);
+        exit(EXIT_FAILURE);
+    }
+    FrameBuffer_Size  = drmFB->pitches[0] * drmFB->height;
+    FrameBuffer_Depth = depth;
 
     DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
@@ -270,7 +339,7 @@ static void init_drmFB(void)
     tklog_info("DRM frame buffer map of %u bytes allocated at %p.\n",
                FrameBuffer_Size, DRM_FrameBuffer);
 
-    drmModeFreeFB(drmFB);
+    drmModeFreeFB2(drmFB);
     drmModeFreeCrtc(drmCrtc);
     drmModeFreeEncoder(drmEncoder);
     drmModeFreeConnector(drmConnector);
