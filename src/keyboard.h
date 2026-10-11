@@ -1,7 +1,7 @@
 #pragma once
 
-int init_kbd(const char *);
+int init_kbd(const char *kbd_device);
 void cleanup_kbd();
 
-void injectKeyEvent(uint16_t, uint16_t);
+void injectKeyEvent(uint16_t code, uint16_t value);
 int keysym2scancode(rfbKeySym key, rfbClientPtr cl);
