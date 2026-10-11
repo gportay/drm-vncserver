@@ -4,7 +4,7 @@ VNC server for Linux DRM framebuffer devices.
 
 This project allows remote access to embedded Linux systems with a direct frame buffer rendering, notably Akai MPC devices.
 
-Working configurations: 32 bits/pixel with 90, 180, 270 degress rotation.
+Working configurations: 32 bits/pixel with 90 degress rotation.
 Other resolutions are not implemented.
 
 The code is based on a LibVNC example for Android:
