@@ -91,7 +91,6 @@ static int VNC_rotate = -1;
 static int Touch_rotate = -1;
 static int Target_fps = 0;
 static rfbScreenInfoPtr RFB_Server;
-static unsigned int FrameBuffer_BitsPerPixel;
 static unsigned int FrameBuffer_Depth;
 static unsigned int FrameBuffer_Size;
 static unsigned int FrameBuffer_Xwidth;
@@ -298,9 +297,8 @@ static void init_drmFB(void)
     }
 
     /* Recompute with drm infos..should be the same as fb0 */
-    FrameBuffer_Size         = drmFB->pitch * drmFB->height;
-    FrameBuffer_BitsPerPixel = drmFB->bpp;
-    FrameBuffer_Depth        = drmFB->depth;
+    FrameBuffer_Size  = drmFB->pitch * drmFB->height;
+    FrameBuffer_Depth = drmFB->depth;
 
     DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
@@ -345,11 +343,10 @@ static void init_fb(void)
      *
      * This prevents the screen from 'smearing' on 1366 x 768 displays
      */
-    FrameBuffer_Xwidth       =
+    FrameBuffer_Xwidth  =
                   fix_scrinfo.line_length / (var_scrinfo.bits_per_pixel / 8.0);
-    FrameBuffer_Yheight      = var_scrinfo.yres;
-    FrameBuffer_BitsPerPixel = var_scrinfo.bits_per_pixel;
-    FrameBuffer_Size         =
+    FrameBuffer_Yheight = var_scrinfo.yres;
+    FrameBuffer_Size    =
          FrameBuffer_Xwidth * FrameBuffer_Yheight * var_scrinfo.bits_per_pixel;
 
     tklog_info(" fb xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
@@ -483,7 +480,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
         RFB_Server->ptrAddEvent = ptrevent_mouse;
 
     /* Set PixelFormat for server */
-    RFB_Server->serverFormat.bitsPerPixel = FrameBuffer_BitsPerPixel;
+    RFB_Server->serverFormat.bitsPerPixel = BYTES_PER_PIXEL * BITS_PER_SAMPLE;
     RFB_Server->serverFormat.depth        = FrameBuffer_Depth;
     RFB_Server->serverFormat.bigEndian    = 0;
     RFB_Server->serverFormat.trueColour   = 1;
