@@ -57,10 +57,6 @@ __ __| |           |  /_) |     ___|             |           |\n\
 #define BITS_PER_SAMPLE 8
 #define SAMPLES_PER_PIXEL 3
 
-#ifndef ALIGN_UP
-#define ALIGN_UP(x, y)  ((x + (y)-1) & ~((y)-1))
-#endif
-
 /* #define CHANNELS_PER_PIXEL 4 */
 
 static char fb_device[256] = "/dev/fb0";
