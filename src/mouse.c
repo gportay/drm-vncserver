@@ -19,7 +19,7 @@
 #include "rfb/rfb.h"
 
 #include "mouse.h"
-#include "tklog.h"
+#include "log.h"
 
 static int mousefd = -1;
 
@@ -47,10 +47,10 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
 {
     struct input_absinfo info;
 
-    tklog_info("Initializing mouse device %s ...\n", mouse_device);
+    log_info("Initializing mouse device %s ...\n", mouse_device);
     if ((mousefd = open(mouse_device, O_RDWR)) == -1) {
-        tklog_error("Unable to open mouse device %s (%d).\n", mouse_device,
-                    errno);
+        log_error("Unable to open mouse device %s (%d).\n", mouse_device,
+                  errno);
         return 0;
     }
 
@@ -60,34 +60,34 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     if (ioctl(mousefd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
               evtype_bitmask) < 0) {
-        tklog_error("Unable to get mouse event bits (%d).", errno);
+        log_error("Unable to get mouse event bits (%d).", errno);
         return 0;
     }
 
     int index = REL_WHEEL_HI_RES / 32;
     int offset = REL_WHEEL_HI_RES - (index * 32);
     if (CHECK_BIT(evtype_bitmask[index], offset)) {
-        tklog_info("%s has hi res wheel.\n", mouse_device);
+        log_info("%s has hi res wheel.\n", mouse_device);
         is_wheel_hires = true;
     }
 #endif
 
     /* Get the Range of X and Y */
     if (ioctl(mousefd, EVIOCGABS(ABS_X), &info)) {
-        tklog_error("Unable to get abs X value (%d).\n", errno);
+        log_error("Unable to get abs X value (%d).\n", errno);
         return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
     if (ioctl(mousefd, EVIOCGABS(ABS_Y), &info)) {
-        tklog_error("Unable to get abs Y value (%d).\n", errno);
+        log_error("Unable to get abs Y value (%d).\n", errno);
         return 0;
     }
     ymin = info.minimum;
     ymax = info.maximum;
     rotate = vnc_rotate;
 
-    tklog_info("  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax);
+    log_info("  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax);
     return 1;
 }
 
@@ -159,10 +159,10 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
                 ev.code = mouseButtonMap[bi].value;
                 ev.value = isPressed;
                 if (write(mousefd, &ev, sizeof(ev)) < 0)
-                    tklog_warn("Unable to write mouse event (%d).\n", errno);
+                    log_warn("Unable to write mouse event (%d).\n", errno);
 
-                tklog_info("Button %s=%04X\n", mouseButtonMap[bi].name,
-                           mouseButtonMap[bi].value);
+                log_info("Button %s=%04X\n", mouseButtonMap[bi].name,
+                         mouseButtonMap[bi].value);
             }
         }
 
@@ -179,17 +179,17 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
             ev.type = EV_REL;
             if (is_wheel_hires) {
 #ifdef REL_WHEEL_HI_RES
-                tklog_info("HI RES WHEEL %d\n", wheel_tick * 120);
+                log_info("HI RES WHEEL %d\n", wheel_tick * 120);
                 ev.code = REL_WHEEL_HI_RES;
                 ev.value = wheel_tick * 120;
 #endif
             } else {
-                tklog_info("WHEEL %d\n", wheel_tick);
+                log_info("WHEEL %d\n", wheel_tick);
                 ev.code = REL_WHEEL;
                 ev.value = wheel_tick;
             }
             if (write(mousefd, &ev, sizeof(ev)) < 0)
-                tklog_warn("Unable to write mouse event (%d).\n", errno);
+                log_warn("Unable to write mouse event (%d).\n", errno);
             last_wheel_tick = wheel_tick;
             wheel_tick = 0;
         }
@@ -208,7 +208,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
         ev.code = ABS_X;
         ev.value = x;
         if (write(mousefd, &ev, sizeof(ev)) < 0)
-            tklog_warn("Unable to write mouse event (%d).\n", errno);
+            log_warn("Unable to write mouse event (%d).\n", errno);
         last_x = x;
     }
 
@@ -221,7 +221,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
         ev.code = ABS_Y;
         ev.value = y;
         if (write(mousefd, &ev, sizeof(ev)) < 0)
-            tklog_warn("Unable to write mouse event (%d).\n", errno);
+            log_warn("Unable to write mouse event (%d).\n", errno);
         last_y = y;
     }
 
@@ -233,8 +233,8 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
     ev.code = 0;
     ev.value = 0;
     if (write(mousefd, &ev, sizeof(ev)) < 0)
-        tklog_warn("Unable to write mouse event (%d).\n", errno);
+        log_warn("Unable to write mouse event (%d).\n", errno);
 
-    tklog_debug("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n",
-                xin, yin, x, y, buttonMask, last_wheel_tick);
+    log_debug("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n",
+              xin, yin, x, y, buttonMask, last_wheel_tick);
 }

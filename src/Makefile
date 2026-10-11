@@ -15,19 +15,19 @@ drm-vncserver.o: drm-vncserver.c
 drm-vncserver.o: keyboard.h
 drm-vncserver.o: mouse.h
 drm-vncserver.o: touch.h
-drm-vncserver.o: tklog.h
+drm-vncserver.o: log.h
 
 keyboard.o: keyboard.c
 keyboard.o: keyboard.h
-keyboard.o: tklog.h
+keyboard.o: log.h
 
 mouse.o: mouse.c
 mouse.o: mouse.h
-mouse.o: tklog.h
+mouse.o: log.h
 
 touch.o: touch.c
 touch.o: touch.h
-touch.o: tklog.h
+touch.o: log.h
 
 .PHONY: install
 install:

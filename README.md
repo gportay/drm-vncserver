@@ -64,44 +64,35 @@ Run `make install` to install the binary to system.
 
 ### example with a i915 based laptop
 
-	drm-vncserver -f /dev/dri/card1 -t /dev/input/event5 -k /dev/input/event3 -r 90 -F 10
-	
-	__ __| |           |  /_) |     ___|             |           |
-	  |   __ \   _ \  ' /  | |  / |      _ \ __ \   |      _` | __ \   __|
-	  |   | | |  __/  . \  |   <  |   |  __/ |   |  |     (   | |   |\__ \
-	 _|  _| |_|\___| _|\_\_|_|\_\\____|\___|_|  _| _____|\__,_|_.__/ ____/
-	----------------------------------------------------------------------
-	TKGL VNC SERVER FOR DRM DEVICES - V1.0
-	(c) The KikGen Labs.
-	
-	[tkgl INFO    ]  VNCSERVER STARTING...
-	[tkgl INFO    ]  DRM device /dev/dri/card1 sucessfully opened.
-	[tkgl INFO    ]  DRM device has 6 connectors.
-	[tkgl INFO    ]  DRM Device Name: eDP-1
-	[tkgl INFO    ]  Encoder        : 506
-	[tkgl INFO    ]  Resolution : 1920x1200@60
-	[tkgl INFO    ]  (ht: 2104 hs: 1936 he: 1952 hskew: 0, vt: 1236 vs: 1203 ve: 1217 vscan: 0, flags: 0xA <P>)
-	[tkgl INFO    ]  Connector 507 is connected to encoder 506 CRTC 504.
-	[tkgl INFO    ]  Got framebuffer at CRTC: 504.
-	[tkgl INFO    ]  FB is format XR24 width 1920 height 1200.
-	[tkgl INFO    ]  FB has 3 plane(s):
-	[tkgl INFO    ]  Plane 0 has handle 1 pitch 7680 offset 0
-	[tkgl INFO    ]  Plane 1 has handle 1 pitch 960 offset 9338880
-	[tkgl INFO    ]  Plane 2 has handle 1 pitch 64 offset 9375744
-	[tkgl INFO    ]  FB has modifier Intel Color Control Surface with Clear Color (CCS) for DG2 render compression.
-	[tkgl INFO    ]   fb xres=1920, yres=1200, bpp=32
-	[tkgl INFO    ]    offset:length red=16:255 green=8:255 blue=0:255 
-	[tkgl INFO    ]    frame buffer size : 9216000 bytes
-	[tkgl INFO    ]  DRM frame buffer map of 9216000 bytes allocated at 0x7070aacaa000.
-	[tkgl INFO    ]  Initializing keyboard device /dev/input/event3 ...
-	[tkgl INFO    ]  Initializing touch device /dev/input/event5 ...
-	[tkgl INFO    ]    x:(0 3364)  y:(0 1669) 
-	[tkgl INFO    ]  VNC (TKGL) server initialized with the following parameters :
-	[tkgl INFO    ]    width,height       : 1920,1200
-	[tkgl INFO    ]    port               : 5900
-	[tkgl INFO    ]    rotate             : 90
-	[tkgl INFO    ]    mouse/touch rotate : 90
-	[tkgl INFO    ]    target FPS         : 10
-	[tkgl INFO    ]  Initializing VNC server...
-	11/10/2026 15:00:57 Listening for VNC connections on TCP port 5900
-	11/10/2026 15:00:57 Listening for VNC connections on TCP6 port 5900	
+	src/drm-vncserver -f /dev/dri/card1 -t /dev/input/event5 -k /dev/input/event3 -r 90 -F 10
+	[INFO    ]  VNCSERVER STARTING...
+	[INFO    ]  DRM device /dev/dri/card1 sucessfully opened.
+	[INFO    ]  DRM device has 6 connectors.
+	[INFO    ]  DRM Device Name: eDP-1
+	[INFO    ]  Encoder        : 506
+	[INFO    ]  Resolution : 1920x1200@60
+	[INFO    ]  (ht: 2104 hs: 1936 he: 1952 hskew: 0, vt: 1236 vs: 1203 ve: 1217 vscan: 0, flags: 0xA <P>)
+	[INFO    ]  Connector 507 is connected to encoder 506 CRTC 504.
+	[INFO    ]  Got framebuffer at CRTC: 504.
+	[INFO    ]  FB is format XR24 width 1920 height 1200.
+	[INFO    ]  FB has 3 plane(s):
+	[INFO    ]  Plane 0 has handle 1 pitch 7680 offset 0
+	[INFO    ]  Plane 1 has handle 1 pitch 960 offset 9338880
+	[INFO    ]  Plane 2 has handle 1 pitch 64 offset 9375744
+	[WARN    ]  FB has modifier Intel Color Control Surface with Clear Color (CCS) for DG2 render compression.
+	[INFO    ]   fb xres=1920, yres=1200, bpp=32
+	[INFO    ]    offset:length red=16:255 green=8:255 blue=0:255 
+	[INFO    ]    frame buffer size : 9216000 bytes
+	[INFO    ]  DRM frame buffer map of 9216000 bytes allocated at 0x7070aacaa000.
+	[INFO    ]  Initializing keyboard device /dev/input/event3 ...
+	[INFO    ]  Initializing touch device /dev/input/event5 ...
+	[INFO    ]    x:(0 3364)  y:(0 1669) 
+	[INFO    ]  VNC server initialized with the following parameters :
+	[INFO    ]    width,height       : 1920,1200
+	[INFO    ]    port               : 5900
+	[INFO    ]    rotate             : 90
+	[INFO    ]    mouse/touch rotate : 90
+	[INFO    ]    target FPS         : 10
+	[INFO    ]  Initializing VNC server...
+	12/10/2026 07:02:08 Listening for VNC connections on TCP port 5900
+	12/10/2026 07:02:08 Listening for VNC connections on TCP6 port 5900
