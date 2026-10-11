@@ -65,38 +65,29 @@ Run `make install` to install the binary to system.
 ### example with a i915 based laptop
 
 	drm-vncserver -f /dev/dri/card0 -t /dev/input/event0 -k /dev/input/event1 -r 90 -F 10
-	
-	__ __| |           |  /_) |     ___|             |           |
-	  |   __ \   _ \  ' /  | |  / |      _ \ __ \   |      _` | __ \   __|
-	  |   | | |  __/  . \  |   <  |   |  __/ |   |  |     (   | |   |\__ \
-	 _|  _| |_|\___| _|\_\_|_|\_\\____|\___|_|  _| _____|\__,_|_.__/ ____/
-	----------------------------------------------------------------------
-	TKGL VNC SERVER FOR DRM DEVICES - V1.0
-	(c) The KikGen Labs.
-	
-	[tkgl INFO    ]  VNCSERVER STARTING...
-	[tkgl INFO    ]  DRM device /dev/dri/card0 sucessfully opened.
-	[tkgl INFO    ]  DRM device has 1 connectors.
-	[tkgl INFO    ]  DRM Device Name: LVDS-1
-	[tkgl INFO    ]  Encoder        : 50
-	[tkgl INFO    ]  Resolution : 800x480@60
-	[tkgl INFO    ]  (ht: 1056 hs: 842 he: 970 hskew: 0, vt: 525 vs: 490 ve: 492 vscan: 0, flags: 0xA <P>)
-	[tkgl INFO    ]  Connector 51 is connected to encoder 50 CRTC 38.
-	[tkgl INFO    ]  Got framebuffer at CRTC: 38.
-	[tkgl INFO    ]  FB is format XR24 width 800 height 480.
-	[tkgl INFO    ]   fb xres=800, yres=480, bpp=32
-	[tkgl INFO    ]    offset:length red=16:255 green=8:255 blue=0:255
-	[tkgl INFO    ]    frame buffer size : 1536000 bytes
-	[tkgl INFO    ]  DRM frame buffer map of 1536000 bytes allocated at 0xb675f000.
-	[tkgl INFO    ]  Initializing keyboard device /dev/input/event1 ...
-	[tkgl INFO    ]  Initializing touch device /dev/input/event0 ...
-	[tkgl INFO    ]    x:(0 4095)  y:(0 4095)
-	[tkgl INFO    ]  VNC (TKGL) server initialized with the following parameters :
-	[tkgl INFO    ]    width,height       : 800,480
-	[tkgl INFO    ]    port               : 5900
-	[tkgl INFO    ]    rotate             : 90
-	[tkgl INFO    ]    mouse/touch rotate : 90
-	[tkgl INFO    ]    target FPS         : 10
-	[tkgl INFO    ]  Initializing VNC server...
+	[INFO    ]  VNCSERVER STARTING...
+	[INFO    ]  DRM device /dev/dri/card0 sucessfully opened.
+	[INFO    ]  DRM device has 1 connectors.
+	[INFO    ]  DRM Device Name: LVDS-1
+	[INFO    ]  Encoder        : 50
+	[INFO    ]  Resolution : 800x480@60
+	[INFO    ]  (ht: 1056 hs: 842 he: 970 hskew: 0, vt: 525 vs: 490 ve: 492 vscan: 0, flags: 0xA <P>)
+	[INFO    ]  Connector 51 is connected to encoder 50 CRTC 38.
+	[INFO    ]  Got framebuffer at CRTC: 38.
+	[INFO    ]  FB is format XR24 width 800 height 480.
+	[INFO    ]   fb xres=800, yres=480, bpp=32
+	[INFO    ]    offset:length red=16:255 green=8:255 blue=0:255
+	[INFO    ]    frame buffer size : 1536000 bytes
+	[INFO    ]  DRM frame buffer map of 1536000 bytes allocated at 0xb675f000.
+	[INFO    ]  Initializing keyboard device /dev/input/event1 ...
+	[INFO    ]  Initializing touch device /dev/input/event0 ...
+	[INFO    ]    x:(0 4095)  y:(0 4095)
+	[INFO    ]  VNC server initialized with the following parameters :
+	[INFO    ]    width,height       : 800,480
+	[INFO    ]    port               : 5900
+	[INFO    ]    rotate             : 90
+	[INFO    ]    mouse/touch rotate : 90
+	[INFO    ]    target FPS         : 10
+	[INFO    ]  Initializing VNC server...
 	11/10/2026 15:00:57 Listening for VNC connections on TCP port 5900
 	11/10/2026 15:00:57 Listening for VNC connections on TCP6 port 5900
