@@ -57,8 +57,6 @@ __ __| |           |  /_) |     ___|             |           |\n\
 #define BITS_PER_SAMPLE 8
 #define SAMPLES_PER_PIXEL 3
 
-/* #define CHANNELS_PER_PIXEL 4 */
-
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
 static char kbd_device[256] = "";
@@ -360,7 +358,6 @@ static void ptrevent_touch(int buttonMask, int x, int y, rfbClientPtr cl)
      * From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61
      */
 
-    /* tklog_debug("Got ptrevent touch: %04x (x=%d, y=%d)\n", buttonMask, x, y); */
     /* Simulate left mouse event as touch event */
     static int pressed = 0;
     if (buttonMask & 1) {
@@ -396,7 +393,6 @@ static void ptrevent_mouse(int buttonMask, int x, int y, rfbClientPtr cl)
      * From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61
      */
 
-    /* tklog_debug("Got mouse: %04x (x=%d, y=%d)\n", buttonMask, x, y); */
     /* Simulate left mouse event as touch event */
     injectMouseEvent(&var_scrinfo, buttonMask, x, y);
 }
