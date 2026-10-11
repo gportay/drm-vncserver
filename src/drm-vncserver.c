@@ -59,6 +59,7 @@ __ __| |           |  /_) |     ___|             |           |\n\
 
 #define BITS_PER_SAMPLE 8
 #define SAMPLES_PER_PIXEL 3
+#define BYTES_PER_PIXEL 4
 /* #define COLOR_MASK  0x1f001f */
 #define COLOR_MASK (((1UL << BITS_PER_SAMPLE) << 1) - 1)
 #define PIXEL_FB_TO_RFB(p, r_offset, g_offset, b_offset) \
@@ -90,7 +91,6 @@ static int VNC_rotate = -1;
 static int Touch_rotate = -1;
 static int Target_fps = 0;
 static rfbScreenInfoPtr RFB_Server;
-static size_t FrameBuffer_BytesPP;
 static unsigned int FrameBuffer_BitsPerPixel;
 static unsigned int FrameBuffer_Depth;
 static unsigned int FrameBuffer_Size;
@@ -291,7 +291,6 @@ static void init_drmFB(void)
     /* Recompute with drm infos..should be the same as fb0 */
     FrameBuffer_Size         = drmFB->pitch * drmFB->height;
     FrameBuffer_BitsPerPixel = drmFB->bpp;
-    FrameBuffer_BytesPP      = drmFB->bpp / 8;
     FrameBuffer_Depth        = drmFB->depth;
 
     DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
@@ -341,10 +340,9 @@ static void init_fb(void)
     FrameBuffer_Xwidth       =
                   fix_scrinfo.line_length / (var_scrinfo.bits_per_pixel / 8.0);
     FrameBuffer_Yheight      = var_scrinfo.yres;
-    FrameBuffer_BytesPP      = var_scrinfo.bits_per_pixel / 8;
     FrameBuffer_BitsPerPixel = var_scrinfo.bits_per_pixel;
     FrameBuffer_Size         =
-                FrameBuffer_Xwidth * FrameBuffer_Yheight * FrameBuffer_BytesPP;
+         FrameBuffer_Xwidth * FrameBuffer_Yheight * var_scrinfo.bits_per_pixel;
 
     tklog_info(" fb xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
                (int)FrameBuffer_Xwidth, (int)FrameBuffer_Yheight,
@@ -358,6 +356,12 @@ static void init_fb(void)
                (int)var_scrinfo.blue.offset, (int)var_scrinfo.blue.length);
 
     tklog_info("  frame buffer size : %d bytes\n", FrameBuffer_Size);
+
+    if (var_scrinfo.bits_per_pixel != 32) {
+        tklog_fatal("Only 32 bits framebuffer is supported. Current Bits Per Pixel is %d.\n",
+                    var_scrinfo.bits_per_pixel);
+        exit(EXIT_FAILURE);
+    }
 
     close(fbfd);
 }
@@ -456,7 +460,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
 
     RFB_Server = rfbGetScreen(&argc, argv, FrameBuffer_Xwidth,
                               FrameBuffer_Yheight, BITS_PER_SAMPLE,
-                              SAMPLES_PER_PIXEL, FrameBuffer_BytesPP);
+                              SAMPLES_PER_PIXEL, BYTES_PER_PIXEL);
     assert(RFB_Server != NULL);
 
     RFB_Server->desktopName  = SERVER_NAME;
@@ -490,7 +494,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
             RFB_Server->width = FrameBuffer_Xwidth;
             RFB_Server->height = FrameBuffer_Yheight;
             RFB_Server->paddedWidthInBytes =
-                                      FrameBuffer_Xwidth * FrameBuffer_BytesPP;
+                                          FrameBuffer_Xwidth * BYTES_PER_PIXEL;
             memcpy(RFB_FrameBuffer, DRM_FrameBuffer, FrameBuffer_Size);
             break;
 
@@ -498,7 +502,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
             RFB_Server->width = FrameBuffer_Yheight;
             RFB_Server->height = FrameBuffer_Xwidth;
             RFB_Server->paddedWidthInBytes =
-                                       RFB_Server->width * FrameBuffer_BytesPP;
+                                           RFB_Server->width * BYTES_PER_PIXEL;
             rotateMatrix90(RFB_FrameBuffer, DRM_FrameBuffer,
                            FrameBuffer_Xwidth, FrameBuffer_Yheight);
             break;
@@ -681,12 +685,6 @@ int main(int argc, char **argv)
 
     init_fb();
     init_drmFB();
-
-    if (FrameBuffer_BitsPerPixel != 32) {
-        tklog_fatal("Only 32 bits framebuffer is supported. Current Bits Per Pixel is %d.\n",
-                    FrameBuffer_BitsPerPixel);
-        exit(EXIT_FAILURE);
-    }
 
     if (FrameBuffer_Xwidth < FrameBuffer_Yheight  && VNC_rotate < 0) {
         tklog_info("Display auto rotation activated (90°)\n");
