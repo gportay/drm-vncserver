@@ -124,7 +124,7 @@ static const struct type_name connector_type_names[] = {
 
 static void update_screen32();
 
-const char *connector_type_name(unsigned int type)
+static const char *connector_type_name(unsigned int type)
 {
     if (type < ARRAY_SIZE(connector_type_names)) {
         return connector_type_names[type].name;
@@ -135,8 +135,8 @@ const char *connector_type_name(unsigned int type)
 
 /* FrameBuffer rotation functions */
 
-void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width,
-                    int16_t height)
+static void rotateMatrix90(uint32_t * dest, uint32_t * src, uint16_t width,
+                           int16_t height)
 {
     uint32_t srcOffset = 0;
     for (uint16_t y = 0; y < height; y++) {
@@ -551,7 +551,7 @@ static void update_screen32()
 
 /*****************************************************************************/
 
-void print_usage(char **argv)
+static void print_usage(char **argv)
 {
     printf("%s [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
            "-p port: VNC port, default is 5900\n"
