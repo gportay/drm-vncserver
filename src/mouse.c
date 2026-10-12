@@ -107,7 +107,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
      * Indicates either pointer movement or a pointer button press or release.
      * The pointer is now at (x-position, y-position), and the current state of
      * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
-     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * respectively, 0 meaning up, 1 meaning down (pressed). On a conventional
      * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
      * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
      * is represented by a press and release of button 4, and each step

@@ -247,7 +247,7 @@ static void init_drmFB(void)
     drmResolution = &drmConnector->modes[0];
     tklog_info("Resolution : %ux%u@%u\n", drmResolution->hdisplay,
                drmResolution->vdisplay, drmResolution->vrefresh);
-    tklog_info("(ht: %u hs: %u he: %u hskew: %u, vt: %u  vs: %u ve: %u vscan: %u, flags: 0x%X %s)\n",
+    tklog_info("(ht: %u hs: %u he: %u hskew: %u, vt: %u vs: %u ve: %u vscan: %u, flags: 0x%X %s)\n",
                 drmResolution->htotal, drmResolution->hsync_start,
                 drmResolution->hsync_end, drmResolution->hskew,
                 drmResolution->vtotal, drmResolution->vsync_start,
@@ -390,7 +390,7 @@ static void ptrevent_touch(int buttonMask, int x, int y, rfbClientPtr cl)
      * Indicates either pointer movement or a pointer button press or release.
      * The pointer is now at (x-position, y-position), and the current state of
      * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
-     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * respectively, 0 meaning up, 1 meaning down (pressed). On a conventional
      * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
      * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
      * is represented by a press and release of button 4, and each step
@@ -426,7 +426,7 @@ static void ptrevent_mouse(int buttonMask, int x, int y, rfbClientPtr cl)
      * Indicates either pointer movement or a pointer button press or release.
      * The pointer is now at (x-position, y-position), and the current state of
      * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
-     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * respectively, 0 meaning up, 1 meaning down (pressed). On a conventional
      * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
      * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
      * is represented by a press and release of button 4, and each step

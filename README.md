@@ -57,7 +57,7 @@ Run `make install` to install the binary to system.
 	[tkgl INFO    ]  DRM Device Name: DSI-1
 	[tkgl INFO    ]  Encoder        : 49
 	[tkgl INFO    ]  Resolution : 800x1280@59
-	[tkgl INFO    ]  (ht: 970 hs: 876 he: 894 hskew: 0, vt: 1290  vs: 1284 ve: 1286 vscan: 0, flags: 0x0 )
+	[tkgl INFO    ]  (ht: 970 hs: 876 he: 894 hskew: 0, vt: 1290 vs: 1284 ve: 1286 vscan: 0, flags: 0x0 )
 	[tkgl INFO    ]  Connector 50 is connected to encoder 49 CRTC 44.
 	[tkgl INFO    ]  Got framebuffer at CRTC: 44.
 	[tkgl INFO    ]  FB depth is 24 pitch 3200 width 800 height 1280 bpp 32.
