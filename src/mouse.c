@@ -60,7 +60,7 @@ int init_mouse(const char *touch_device, int vnc_rotate)
     /* REL_WHEEL_HI_RES */
     if (ioctl(mousefd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
               evtype_bitmask) < 0) {
-        tklog_error("%s  can't get evdev features: %s", touch_device,
+        tklog_error("%s can't get evdev features: %s", touch_device,
                     strerror(errno));
         return 0;
     }
@@ -105,7 +105,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
      * Indicates either pointer movement or a pointer button press or release.
      * The pointer is now at (x-position, y-position), and the current state of
      * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
-     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * respectively, 0 meaning up, 1 meaning down (pressed). On a conventional
      * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
      * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
      * is represented by a press and release of button 4, and each step

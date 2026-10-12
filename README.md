@@ -80,7 +80,7 @@ Run `make install` to install the binary to system.
 	[tkgl INFO    ]  DRM Device Name: eDP-1
 	[tkgl INFO    ]  Encoder        : 506
 	[tkgl INFO    ]  Resolution : 1920x1200@60
-	[tkgl INFO    ]  (ht: 2104 hs: 1936 he: 1952 hskew: 0, vt: 1236  vs: 1203 ve: 1217 vscan: 0, flags: 0xA <P>)
+	[tkgl INFO    ]  (ht: 2104 hs: 1936 he: 1952 hskew: 0, vt: 1236 vs: 1203 ve: 1217 vscan: 0, flags: 0xA <P>)
 	[tkgl INFO    ]  Connector 507 is connected to encoder 506 CRTC 504.
 	[tkgl INFO    ]  Got framebuffer at CRTC: 504.
 	[tkgl INFO    ]  FB is format XR24 width 1920 height 1200.
