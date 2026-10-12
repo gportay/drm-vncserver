@@ -39,19 +39,20 @@ int init_touch(const char *touch_device, int vnc_rotate)
 
     tklog_info("Initializing touch device %s ...\n", touch_device);
     if ((touchfd = open(touch_device, O_RDWR)) == -1) {
-        tklog_error("cannot open touch device %s\n", touch_device);
+        tklog_error("Unable to open touch device %s (%d).\n", touch_device,
+                    errno);
         return 0;
     }
 
     /* Get the Range of X and Y */
     if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
-        tklog_error("cannot get ABS_X info, %s\n", strerror(errno));
+        tklog_error("Unable to get abs X value (%d).\n", errno);
         return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
     if (ioctl(touchfd, EVIOCGABS(ABS_Y), &info)) {
-        tklog_error("cannot get ABS_Y, %s\n", strerror(errno));
+        tklog_error("Unable to get abs Y value (%d).\n", errno);
         return 0;
     }
     ymin = info.minimum;
@@ -112,7 +113,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         sendTouch = false;
         break;
     default:
-        tklog_error("invalid mouse action\n");
+        tklog_error("%d is an invalid mouse action.\n", mouseAction);
         exit(EXIT_FAILURE);
     }
 
@@ -125,7 +126,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_MT_TRACKING_ID;
         ev.value = trkIdValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            tklog_error("write event failed, %s\n", strerror(errno));
+            tklog_error("Unable to write touch event (%d).\n", errno);
 
         /* Then send a BTN_TOUCH */
         gettimeofday(&time, 0);
@@ -135,7 +136,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = BTN_TOUCH;
         ev.value = touchValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            tklog_error("write event failed, %s\n", strerror(errno));
+            tklog_error("Unable to write touch event (%d).\n", errno);
     }
 
     if (sendPos) {
@@ -147,7 +148,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_MT_POSITION_X;
         ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            tklog_error("write event failed, %s\n", strerror(errno));
+            tklog_error("Unable to write touch event (%d).\n", errno);
 
         /* Then send a ABS_MT_POSITION_Y */
         gettimeofday(&time, 0);
@@ -157,7 +158,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_MT_POSITION_Y;
         ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            tklog_error("write event failed, %s\n", strerror(errno));
+            tklog_error("Unable to write touch event (%d).\n", errno);
 
         /* Then send the X */
         gettimeofday(&time, 0);
@@ -167,7 +168,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_X;
         ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            tklog_error("write event failed, %s\n", strerror(errno));
+            tklog_error("Unable to write touch event (%d).\n", errno);
 
         /* Then send the Y */
         gettimeofday(&time, 0);
@@ -177,7 +178,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_Y;
         ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            tklog_error("write event failed, %s\n", strerror(errno));
+            tklog_error("Unable to write touch event (%d).\n", errno);
     }
 
     /* Finally send the SYN */
@@ -188,7 +189,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
     ev.code = 0;
     ev.value = 0;
     if (write(touchfd, &ev, sizeof(ev)) < 0)
-        tklog_error("write event failed, %s\n", strerror(errno));
+        tklog_error("Unable to write touch event (%d).\n", errno);
 
     tklog_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n",
                 xin, yin, x, y, mouseAction);
