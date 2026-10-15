@@ -45,12 +45,7 @@ typedef struct {
 
 int init_mouse(const char *mouse_device, int vnc_rotate)
 {
-    int size = (REL_CNT / 32) + 1;
-    unsigned int evtype_bitmask[size];
     struct input_absinfo info;
-
-    /* Clean evtype_bitmask structure */
-    memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
 
     tklog_info("Initializing mouse device %s ...\n", mouse_device);
     if ((mousefd = open(mouse_device, O_RDWR)) == -1) {
@@ -59,14 +54,16 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
         return 0;
     }
 
-    /* REL_WHEEL_HI_RES */
+#ifdef REL_WHEEL_HI_RES
+    int size = (REL_CNT / 32) + 1;
+    unsigned int evtype_bitmask[size];
+    memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     if (ioctl(mousefd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
               evtype_bitmask) < 0) {
         tklog_error("Unable to get mouse event bits (%d).", errno);
         return 0;
     }
 
-#ifdef REL_WHEEL_HI_RES
     int index = REL_WHEEL_HI_RES / 32;
     int offset = REL_WHEEL_HI_RES - (index * 32);
     if (CHECK_BIT(evtype_bitmask[index], offset)) {
