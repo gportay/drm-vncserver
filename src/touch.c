@@ -22,7 +22,7 @@
 #include "touch.h"
 #include "tklog.h"
 
-static int touchfd = -1;
+static int fd = -1;
 
 static int xmin, xmax;
 static int ymin, ymax;
@@ -39,19 +39,19 @@ int init_touch(const char *touch_device, int vnc_rotate)
     struct input_absinfo info;
 
     tklog_info("Initializing touch device %s ...\n", touch_device);
-    if ((touchfd = open(touch_device, O_RDWR)) == -1) {
+    if ((fd = open(touch_device, O_RDWR)) == -1) {
         tklog_error("cannot open touch device %s\n", touch_device);
         return 0;
     }
 
     /* Get the Range of X and Y */
-    if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
+    if (ioctl(fd, EVIOCGABS(ABS_X), &info)) {
         tklog_error("cannot get ABS_X info, %s\n", strerror(errno));
         return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
-    if (ioctl(touchfd, EVIOCGABS(ABS_Y), &info)) {
+    if (ioctl(fd, EVIOCGABS(ABS_Y), &info)) {
         tklog_error("cannot get ABS_Y, %s\n", strerror(errno));
         return 0;
     }
@@ -65,8 +65,8 @@ int init_touch(const char *touch_device, int vnc_rotate)
 
 void cleanup_touch()
 {
-    if (touchfd != -1)
-        close(touchfd);
+    if (fd != -1)
+        close(fd);
 }
 
 void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
@@ -145,7 +145,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         ev.type = EV_ABS;
         ev.code = ABS_MT_TRACKING_ID;
         ev.value = trkIdValue;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             tklog_error("write event failed, %s\n", strerror(errno));
 
         /* Then send a BTN_TOUCH */
@@ -155,7 +155,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         ev.type = EV_KEY;
         ev.code = BTN_TOUCH;
         ev.value = touchValue;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             tklog_error("write event failed, %s\n", strerror(errno));
     }
 
@@ -167,7 +167,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         ev.type = EV_ABS;
         ev.code = ABS_MT_POSITION_X;
         ev.value = x;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             tklog_error("write event failed, %s\n", strerror(errno));
 
         /* Then send a ABS_MT_POSITION_Y */
@@ -177,7 +177,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         ev.type = EV_ABS;
         ev.code = ABS_MT_POSITION_Y;
         ev.value = y;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             tklog_error("write event failed, %s\n", strerror(errno));
 
         /* Then send the X */
@@ -187,7 +187,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         ev.type = EV_ABS;
         ev.code = ABS_X;
         ev.value = x;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             tklog_error("write event failed, %s\n", strerror(errno));
 
         /* Then send the Y */
@@ -197,7 +197,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
         ev.type = EV_ABS;
         ev.code = ABS_Y;
         ev.value = y;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             tklog_error("write event failed, %s\n", strerror(errno));
     }
 
@@ -208,7 +208,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;
-    if (write(touchfd, &ev, sizeof(ev)) < 0)
+    if (write(fd, &ev, sizeof(ev)) < 0)
         tklog_error("write event failed, %s\n", strerror(errno));
 
     tklog_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n",
