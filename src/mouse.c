@@ -1,22 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <sys/mman.h>
+#include <sys/time.h>
 #include <sys/ioctl.h>
-
-#include <sys/stat.h>
-#include <sys/sysmacros.h> /* For makedev() */
 
 #include <fcntl.h>
 #include <linux/input.h>
 
-#include <assert.h>
 #include <errno.h>
-
-/* libvncserver */
-#include "rfb/rfb.h"
 
 #include "mouse.h"
 #include "log.h"
