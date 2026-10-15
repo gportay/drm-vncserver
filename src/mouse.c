@@ -47,11 +47,12 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
 {
     int size = (REL_CNT / 32) + 1;
     unsigned int evtype_bitmask[size];
+    struct input_absinfo info;
+
     /* Clean evtype_bitmask structure */
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
 
     tklog_info("Initializing mouse device %s ...\n", mouse_device);
-    struct input_absinfo info;
     if ((mousefd = open(mouse_device, O_RDWR)) == -1) {
         tklog_error("cannot open mouse device %s\n", mouse_device);
         return 0;
@@ -150,6 +151,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
     y = ymin + (y * (ymax - ymin)) / yres;
 
     memset(&ev, 0, sizeof(ev));
+
     struct timeval time;
 
     /* Send buttons state */
@@ -169,6 +171,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
                 ev.value = isPressed;
                 if (write(mousefd, &ev, sizeof(ev)) < 0)
                     tklog_error("write event failed, %s\n", strerror(errno));
+
                 tklog_info("Button %s=%04X\n", mouseButtonMap[bi].name,
                            mouseButtonMap[bi].value);
             }
