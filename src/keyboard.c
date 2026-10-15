@@ -22,11 +22,11 @@ static int fd = -1;
 #define input_event_usec time.tv_usec
 #endif
 
-int init_kbd(const char *kbd_device)
+int init_kbd(const char *device)
 {
-    log_info("Initializing keyboard device %s ...\n", kbd_device);
-    if ((fd = open(kbd_device, O_RDWR)) == -1) {
-        log_error("Unable to open keyboard device %s: %m\n", kbd_device);
+    log_info("Initializing keyboard device %s ...\n", device);
+    if ((fd = open(device, O_RDWR)) == -1) {
+        log_error("Unable to open keyboard device %s: %m\n", device);
         return 0;
     }
 

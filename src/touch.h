@@ -6,7 +6,7 @@ enum MouseAction {
     MousePress
 };
 
-int init_touch(const char *touch_device, int vnc_rotate);
+int init_touch(const char *device, int vnc_rotate);
 void cleanup_touch();
 void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
                       int yres);

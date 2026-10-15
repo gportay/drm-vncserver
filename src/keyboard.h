@@ -1,6 +1,6 @@
 #pragma once
 
-int init_kbd(const char *kbd_device);
+int init_kbd(const char *device);
 void cleanup_kbd();
 
 void injectKeyEvent(uint16_t code, uint16_t value);

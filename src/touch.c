@@ -25,13 +25,13 @@ static int trkg_id = -1;
 #define input_event_usec time.tv_usec
 #endif
 
-int init_touch(const char *touch_device, int vnc_rotate)
+int init_touch(const char *device, int vnc_rotate)
 {
     struct input_absinfo info;
 
-    log_info("Initializing touch device %s ...\n", touch_device);
-    if ((fd = open(touch_device, O_RDWR)) == -1) {
-        log_error("Unable to open touch device %s: %m\n", touch_device);
+    log_info("Initializing touch device %s ...\n", device);
+    if ((fd = open(device, O_RDWR)) == -1) {
+        log_error("Unable to open touch device %s: %m\n", device);
         return 0;
     }
 
