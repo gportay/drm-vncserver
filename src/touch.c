@@ -39,20 +39,19 @@ int init_touch(const char *touch_device, int vnc_rotate)
 
     log_info("Initializing touch device %s ...\n", touch_device);
     if ((touchfd = open(touch_device, O_RDWR)) == -1) {
-        log_error("Unable to open touch device %s (%d).\n", touch_device,
-                  errno);
+        log_error("Unable to open touch device %s: %m\n", touch_device);
         return 0;
     }
 
     /* Get the Range of X and Y */
     if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
-        log_error("Unable to get abs X value (%d).\n", errno);
+        log_error("Unable to get abs X value: %m\n");
         return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
     if (ioctl(touchfd, EVIOCGABS(ABS_Y), &info)) {
-        log_error("Unable to get abs Y value (%d).\n", errno);
+        log_error("Unable to get abs Y value: %m\n");
         return 0;
     }
     ymin = info.minimum;
@@ -126,7 +125,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_MT_TRACKING_ID;
         ev.value = trkIdValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            log_warn("Unable to write touch event (%d).\n", errno);
+            log_warn("Unable to write touch event: %m\n");
 
         /* Then send a BTN_TOUCH */
         gettimeofday(&time, 0);
@@ -136,7 +135,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = BTN_TOUCH;
         ev.value = touchValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            log_warn("Unable to write touch event (%d).\n", errno);
+            log_warn("Unable to write touch event: %m\n");
     }
 
     if (sendPos) {
@@ -148,7 +147,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_MT_POSITION_X;
         ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            log_warn("Unable to write touch event (%d).\n", errno);
+            log_warn("Unable to write touch event: %m\n");
 
         /* Then send a ABS_MT_POSITION_Y */
         gettimeofday(&time, 0);
@@ -158,7 +157,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_MT_POSITION_Y;
         ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            log_warn("Unable to write touch event (%d).\n", errno);
+            log_warn("Unable to write touch event: %m\n");
 
         /* Then send the X */
         gettimeofday(&time, 0);
@@ -168,7 +167,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_X;
         ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            log_warn("Unable to write touch event (%d).\n", errno);
+            log_warn("Unable to write touch event: %m\n");
 
         /* Then send the Y */
         gettimeofday(&time, 0);
@@ -178,7 +177,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         ev.code = ABS_Y;
         ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
-            log_warn("Unable to write touch event (%d).\n", errno);
+            log_warn("Unable to write touch event: %m\n");
     }
 
     /* Finally send the SYN */
@@ -189,7 +188,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
     ev.code = 0;
     ev.value = 0;
     if (write(touchfd, &ev, sizeof(ev)) < 0)
-        log_warn("Unable to write touch event (%d).\n", errno);
+        log_warn("Unable to write touch event: %m\n");
 
     log_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n",
               xin, yin, x, y, mouseAction);

@@ -212,7 +212,7 @@ static void init_drmFB(void)
     /* Open the DRM device */
     drmfd = open(drmFB_device, O_RDWR | O_CLOEXEC);
     if (drmfd < 0) {
-        log_fatal("Unable to open DRM device %s (%d).\n", drmFB_device, errno);
+        log_fatal("Unable to open DRM device %s: %m\n", drmFB_device);
         exit(EXIT_FAILURE);
     }
 
@@ -221,7 +221,7 @@ static void init_drmFB(void)
     /* Retrieve device resources */
     drmRes = drmModeGetResources(drmfd);
     if (!drmRes) {
-        log_fatal("Unable to retrieve DRM resources (%d).\n", errno);
+        log_fatal("Unable to retrieve DRM resources: %m.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -264,13 +264,13 @@ static void init_drmFB(void)
 
     drmEncoder = drmModeGetEncoder(drmfd, drmConnector->encoder_id);
     if (!drmEncoder) {
-        log_fatal("Unable to retrieve DRM encoder (%d).\n", errno);
+        log_fatal("Unable to retrieve DRM encoder: %m.\n");
         exit(EXIT_FAILURE);
     }
 
     drmCrtc = drmModeGetCrtc(drmfd, drmEncoder->crtc_id);
     if (!drmCrtc) {
-        log_fatal("Unable to retrieve DRM CRTC (%d).\n", errno);
+        log_fatal("Unable to retrieve DRM CRTC: %m\n");
         exit(EXIT_FAILURE);
     }
 
@@ -281,7 +281,7 @@ static void init_drmFB(void)
     /* Check framebuffer id */
     drmFB = drmModeGetFB2(drmfd, drmCrtc->buffer_id);
     if (drmFB == NULL) {
-        log_fatal("Unable to retrieve DRM frame buffer (%d).\n", errno);
+        log_fatal("Unable to retrieve DRM frame buffer: %m\n");
         exit(EXIT_FAILURE);
     }
 
@@ -325,13 +325,13 @@ static void init_drmFB(void)
     dumb_map.offset = 0;
 
     if (drmIoctl(drmfd, DRM_IOCTL_MODE_MAP_DUMB, &dumb_map) != 0) {
-        log_fatal("Unable to ioctl (DRM_IOCTL_MODE_MAP_DUMB, %d).\n", errno);
+        log_fatal("Unable to ioctl (DRM_IOCTL_MODE_MAP_DUMB): %m\n");
         exit(EXIT_FAILURE);
     }
 
     /* Recompute with drm infos..should be the same as fb0 */
     if (get_format_pixel_info(drmFB->pixel_format, &depth, &bpp, rgba) != 0) {
-        log_fatal("Unsupported format %x (%d).\n", drmFB->pixel_format, errno);
+        log_fatal("Unsupported format %x: %m\n", drmFB->pixel_format);
         exit(EXIT_FAILURE);
     }
     FrameBuffer_Size         = drmFB->pitches[0] * drmFB->height;
@@ -365,7 +365,7 @@ static void init_drmFB(void)
     DRM_FrameBuffer = mmap(0, FrameBuffer_Size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, drmfd, dumb_map.offset);
     if (DRM_FrameBuffer == MAP_FAILED) {
-        log_fatal("Unable to mmap DRM frame buffer (%d).\n", errno);
+        log_fatal("Unable to mmap DRM frame buffer: %m\n");
         exit(EXIT_FAILURE);
     }
     log_info("DRM frame buffer map of %u bytes allocated at %p.\n",
