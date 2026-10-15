@@ -17,6 +17,11 @@ drm-vncserver.o: mouse.h
 drm-vncserver.o: touch.h
 drm-vncserver.o: log.h
 
+drm.o: CFLAGS += $(shell pkg-config libdrm --cflags)
+drm.o: drm.c
+drm.o: drm.h
+drm.o: log.h
+
 keyboard.o: keyboard.c
 keyboard.o: keyboard.h
 keyboard.o: log.h
