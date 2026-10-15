@@ -21,7 +21,7 @@
 #include "keyboard.h"
 #include "log.h"
 
-static int kbdfd = -1;
+static int fd = -1;
 
 #ifndef input_event_sec
 #define input_event_sec time.tv_sec
@@ -31,7 +31,7 @@ static int kbdfd = -1;
 int init_kbd(const char *kbd_device)
 {
     log_info("Initializing keyboard device %s ...\n", kbd_device);
-    if ((kbdfd = open(kbd_device, O_RDWR)) == -1) {
+    if ((fd = open(kbd_device, O_RDWR)) == -1) {
         log_error("Unable to open keyboard device %s: %m\n", kbd_device);
         return 0;
     }
@@ -41,8 +41,8 @@ int init_kbd(const char *kbd_device)
 
 void cleanup_kbd()
 {
-    if (kbdfd != -1)
-        close(kbdfd);
+    if (fd != -1)
+        close(fd);
 }
 
 void injectKeyEvent(uint16_t code, uint16_t value)
@@ -58,7 +58,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.type = EV_KEY;
     ev.code = code;
     ev.value = value;
-    if (write(kbdfd, &ev, sizeof(ev)) < 0)
+    if (write(fd, &ev, sizeof(ev)) < 0)
         log_warn("Unable to write event: %m\n");
 
     /* Finally send the SYN */
@@ -68,7 +68,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;
-    if (write(kbdfd, &ev, sizeof(ev)) < 0)
+    if (write(fd, &ev, sizeof(ev)) < 0)
         log_warn("Unable to write event: %m\n");
 
     log_debug("injectKey (%d, %d)\n", code, value);
