@@ -173,7 +173,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
             ev.type = EV_REL;
             if (is_wheel_hires) {
 #ifdef REL_WHEEL_HI_RES
-                tklog_info("HI RES WHEEL %d\n", wheel_tick);
+                tklog_info("HI RES WHEEL %d\n", wheel_tick * 120);
                 ev.code = REL_WHEEL_HI_RES;
                 ev.value = wheel_tick * 120;
 #endif
