@@ -35,17 +35,17 @@ typedef struct {
 #define WHEEL_UP 3
 #define WHEEL_DOWN 4
 
-int init_mouse(const char *touch_device, int vnc_rotate)
+int init_mouse(const char *mouse_device, int vnc_rotate)
 {
     int size = (REL_CNT / 32) + 1;
     unsigned int evtype_bitmask[size];
     /* Clean evtype_bitmask structure */
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
 
-    tklog_info("Initializing mouse device %s ...\n", touch_device);
+    tklog_info("Initializing mouse device %s ...\n", mouse_device);
     struct input_absinfo info;
-    if ((mousefd = open(touch_device, O_RDWR)) == -1) {
-        tklog_error("Unable to open mouse device %s (%d).\n", touch_device,
+    if ((mousefd = open(mouse_device, O_RDWR)) == -1) {
+        tklog_error("Unable to open mouse device %s (%d).\n", mouse_device,
                     errno);
         return 0;
     }
@@ -61,7 +61,7 @@ int init_mouse(const char *touch_device, int vnc_rotate)
     int index = REL_WHEEL_HI_RES / 32;
     int offset = REL_WHEEL_HI_RES - (index * 32);
     if (CHECK_BIT(evtype_bitmask[index], offset)) {
-        tklog_info("%s has hi res wheel.\n", touch_device);
+        tklog_info("%s has hi res wheel.\n", mouse_device);
         is_wheel_hires = true;
     }
 #endif
