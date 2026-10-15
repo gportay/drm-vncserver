@@ -62,7 +62,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.code = code;
     ev.value = value;
     if (write(kbdfd, &ev, sizeof(ev)) < 0)
-        tklog_error("Unable to write event (%d).\n", errno);
+        tklog_warn("Unable to write event (%d).\n", errno);
 
     /* Finally send the SYN */
     gettimeofday(&time, 0);
@@ -73,7 +73,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.code = 0;
     ev.value = 0;
     if (write(kbdfd, &ev, sizeof(ev)) < 0)
-        tklog_error("Unable to write event (%d).\n", errno);
+        tklog_warn("Unable to write event (%d).\n", errno);
 
     tklog_debug("injectKey (%d, %d)\n", code, value);
 }

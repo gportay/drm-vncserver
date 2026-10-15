@@ -177,7 +177,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
                 ev.code = mouseButtonMap[bi].value;
                 ev.value = isPressed;
                 if (write(mousefd, &ev, sizeof(ev)) < 0)
-                    tklog_error("Unable to write mouse event (%d).\n", errno);
+                    tklog_warn("Unable to write mouse event (%d).\n", errno);
                 tklog_info("Button %s=%04X\n", mouseButtonMap[bi].name,
                            mouseButtonMap[bi].value);
             }
@@ -206,7 +206,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
                 ev.value = wheel_tick;
             }
             if (write(mousefd, &ev, sizeof(ev)) < 0)
-                tklog_error("Unable to write mouse event (%d).\n", errno);
+                tklog_warn("Unable to write mouse event (%d).\n", errno);
             last_wheel_tick = wheel_tick;
             wheel_tick = 0;
         }
@@ -225,7 +225,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
         ev.code = ABS_X;
         ev.value = x;
         if (write(mousefd, &ev, sizeof(ev)) < 0)
-            tklog_error("Unable to write mouse event (%d).\n", errno);
+            tklog_warn("Unable to write mouse event (%d).\n", errno);
         last_x = x;
     }
 
@@ -238,7 +238,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
         ev.code = ABS_Y;
         ev.value = y;
         if (write(mousefd, &ev, sizeof(ev)) < 0)
-            tklog_error("Unable to write mouse event (%d).\n", errno);
+            tklog_warn("Unable to write mouse event (%d).\n", errno);
         last_y = y;
     }
 
@@ -250,7 +250,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     ev.code = 0;
     ev.value = 0;
     if (write(mousefd, &ev, sizeof(ev)) < 0)
-        tklog_error("Unable to write mouse event (%d).\n", errno);
+        tklog_warn("Unable to write mouse event (%d).\n", errno);
 
     tklog_debug("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n",
                 xin, yin, x, y, buttonMask, last_wheel_tick);
