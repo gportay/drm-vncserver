@@ -36,12 +36,14 @@ static int trkg_id = -1;
 
 int init_touch(const char *touch_device, int vnc_rotate)
 {
-    tklog_info("Initializing touch device %s ...\n", touch_device);
     struct input_absinfo info;
+
+    tklog_info("Initializing touch device %s ...\n", touch_device);
     if ((touchfd = open(touch_device, O_RDWR)) == -1) {
         tklog_error("cannot open touch device %s\n", touch_device);
         return 0;
     }
+
     /* Get the Range of X and Y */
     if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
         tklog_error("cannot get ABS_X info, %s\n", strerror(errno));
@@ -70,6 +72,18 @@ void cleanup_touch()
 void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
                       struct fb_var_screeninfo *scrinfo)
 {
+    /*
+     * Indicates either pointer movement or a pointer button press or release.
+     * The pointer is now at (x-position, y-position), and the current state of
+     * buttons 1 to 8 are represented by bits 0 to 7 of button-mask
+     * respectively, 0 meaning up, 1 meaning down (pressed).  On a conventional
+     * mouse, buttons 1, 2 and 3 correspond to the left, middle and right
+     * buttons on the mouse. On a wheel mouse, each step of the wheel upwards
+     * is represented by a press and release of button 4, and each step
+     * downwards is represented by a press and release of button 5.
+     *
+     * From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61
+     */
     struct input_event ev;
     int xin = x;
     int yin = y;
@@ -196,6 +210,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y,
     ev.value = 0;
     if (write(touchfd, &ev, sizeof(ev)) < 0)
         tklog_error("write event failed, %s\n", strerror(errno));
+
     tklog_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n",
                 xin, yin, x, y, mouseAction);
 }

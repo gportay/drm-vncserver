@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
@@ -20,15 +19,15 @@
 #include <rfb/rfb.h>
 #include <rfb/keysym.h>
 
-#include "tklog.h"
 #include "keyboard.h"
+#include "tklog.h"
+
+static int kbdfd = -1;
 
 #ifndef input_event_sec
 #define input_event_sec time.tv_sec
 #define input_event_usec time.tv_usec
 #endif
-
-static int kbdfd = -1;
 
 int init_kbd(const char *kbd_device)
 {
@@ -36,9 +35,9 @@ int init_kbd(const char *kbd_device)
     if ((kbdfd = open(kbd_device, O_RDWR)) == -1) {
         tklog_error("cannot open kbd device %s\n", kbd_device);
         return 0;
-    } else {
-        return 1;
     }
+
+    return 1;
 }
 
 void cleanup_kbd()
@@ -67,7 +66,6 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     gettimeofday(&time, 0);
     ev.input_event_sec = time.tv_sec;
     ev.input_event_usec = time.tv_usec;
-
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;

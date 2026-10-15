@@ -48,11 +48,12 @@ int init_mouse(const char *touch_device, int vnc_rotate)
 {
     int size = (REL_CNT / 32) + 1;
     unsigned int evtype_bitmask[size];
+    struct input_absinfo info;
+
     /* Clean evtype_bitmask structure */
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
 
     tklog_info("Initializing mouse device %s ...\n", touch_device);
-    struct input_absinfo info;
     if ((mousefd = open(touch_device, O_RDWR)) == -1) {
         tklog_error("cannot open mouse device %s\n", touch_device);
         return 0;
@@ -152,6 +153,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
 
     memset(&ev, 0, sizeof(ev));
+
     struct timeval time;
 
     /* Send buttons state */
@@ -171,6 +173,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
                 ev.value = isPressed;
                 if (write(mousefd, &ev, sizeof(ev)) < 0)
                     tklog_error("write event failed, %s\n", strerror(errno));
+
                 tklog_info("Button %s=%04X\n", mouseButtonMap[bi].name,
                            mouseButtonMap[bi].value);
             }
@@ -244,6 +247,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x,
     ev.value = 0;
     if (write(mousefd, &ev, sizeof(ev)) < 0)
         tklog_error("write event failed, %s\n", strerror(errno));
+
     tklog_debug("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n",
                 xin, yin, x, y, buttonMask, last_wheel_tick);
 }
