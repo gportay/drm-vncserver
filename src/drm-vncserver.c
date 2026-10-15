@@ -711,8 +711,10 @@ int main(int argc, char **argv)
 
     if (strlen(kbd_device) > 0) {
         int ret = init_kbd(kbd_device);
-        if (!ret)
-            tklog_error("Keyboard device %s not available.\n", kbd_device);
+        if (!ret) {
+            tklog_fatal("Keyboard device %s not available.\n", kbd_device);
+            exit(EXIT_FAILURE);
+        }
     } else {
         tklog_warn("No keyboard device. You may use -k command line option\n");
     }
@@ -725,10 +727,18 @@ int main(int argc, char **argv)
     } else if (strlen(touch_device) > 0) {
         /* init touch only if there is a touch device defined */
         int ret = init_touch(touch_device, Touch_rotate);
+        if (!ret) {
+            tklog_fatal("Touch device %s not available.\n", touch_device);
+            exit(EXIT_FAILURE);
+        }
         enable_touch = (ret > 0);
     } else if (strlen(mouse_device) > 0) {
         /* init mouse only if there is a mouse device defined */
         int ret = init_mouse(mouse_device, Touch_rotate);
+        if (!ret) {
+            tklog_fatal("Mouse device %s not available.\n", mouse_device);
+            exit(EXIT_FAILURE);
+        }
         enable_mouse = (ret > 0);
     } else {
         tklog_warn("No touch or mouse device. You may use -t command line option.\n");
