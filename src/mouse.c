@@ -43,13 +43,13 @@ typedef struct {
 #define WHEEL_UP 3
 #define WHEEL_DOWN 4
 
-int init_mouse(const char *mouse_device, int vnc_rotate)
+int init_mouse(const char *device, int vnc_rotate)
 {
     struct input_absinfo info;
 
-    log_info("Initializing mouse device %s ...\n", mouse_device);
-    if ((fd = open(mouse_device, O_RDWR)) == -1) {
-        log_error("Unable to open mouse device %s: %m\n", mouse_device);
+    log_info("Initializing mouse device %s ...\n", device);
+    if ((fd = open(device, O_RDWR)) == -1) {
+        log_error("Unable to open mouse device %s: %m\n", device);
         return 0;
     }
 
@@ -66,7 +66,7 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
     int index = REL_WHEEL_HI_RES / 32;
     int offset = REL_WHEEL_HI_RES - (index * 32);
     if (CHECK_BIT(evtype_bitmask[index], offset)) {
-        log_info("%s has hi res wheel.\n", mouse_device);
+        log_info("%s has hi res wheel.\n", device);
         is_wheel_hires = true;
     }
 #endif
