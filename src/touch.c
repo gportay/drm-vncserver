@@ -73,14 +73,6 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         x = yin;
         y = yres - 1 - xin;
         break;
-    case 180:
-        x = xres - 1 - xin;
-        y = yres - 1 - yin;
-        break;
-    case 270:
-        x = xres - 1 - yin;
-        y = xin;
-        break;
     }
 
     /* Calculate the final x and y */
