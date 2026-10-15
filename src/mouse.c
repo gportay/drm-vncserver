@@ -44,7 +44,7 @@ typedef struct {
 #define WHEEL_UP 3
 #define WHEEL_DOWN 4
 
-int init_mouse(const char *mouse_device, int vnc_rotate)
+int init_mouse(const char *device, int vnc_rotate)
 {
     int size = (REL_CNT / 32) + 1;
     unsigned int evtype_bitmask[size];
@@ -53,16 +53,16 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
     /* Clean evtype_bitmask structure */
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
 
-    tklog_info("Initializing mouse device %s ...\n", mouse_device);
-    if ((fd = open(mouse_device, O_RDWR)) == -1) {
-        tklog_error("cannot open mouse device %s\n", mouse_device);
+    tklog_info("Initializing mouse device %s ...\n", device);
+    if ((fd = open(device, O_RDWR)) == -1) {
+        tklog_error("cannot open mouse device %s\n", device);
         return 0;
     }
 
     /* REL_WHEEL_HI_RES */
     if (ioctl(fd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
               evtype_bitmask) < 0) {
-        tklog_error("%s  can't get evdev features: %s", mouse_device,
+        tklog_error("%s  can't get evdev features: %s", device,
                     strerror(errno));
         return 0;
     }
@@ -71,7 +71,7 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
     int index = REL_WHEEL_HI_RES / 32;
     int offset = REL_WHEEL_HI_RES - (index * 32);
     if (CHECK_BIT(evtype_bitmask[index], offset)) {
-        tklog_info("%s has hi res wheel.\n", mouse_device);
+        tklog_info("%s has hi res wheel.\n", device);
         is_wheel_hires = true;
     }
 #endif
