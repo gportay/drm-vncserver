@@ -12,7 +12,7 @@
 #include "mouse.h"
 #include "log.h"
 
-static int mousefd = -1;
+static int fd = -1;
 
 static int xmin, xmax;
 static int ymin, ymax;
@@ -39,7 +39,7 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
     struct input_absinfo info;
 
     log_info("Initializing mouse device %s ...\n", mouse_device);
-    if ((mousefd = open(mouse_device, O_RDWR)) == -1) {
+    if ((fd = open(mouse_device, O_RDWR)) == -1) {
         log_error("Unable to open mouse device %s: %m\n", mouse_device);
         return 0;
     }
@@ -48,7 +48,7 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
     int size = (REL_CNT / 32) + 1;
     unsigned int evtype_bitmask[size];
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
-    if (ioctl(mousefd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
+    if (ioctl(fd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)),
               evtype_bitmask) < 0) {
         log_error("Unable to get mouse event bits: %m.");
         return 0;
@@ -63,13 +63,13 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
 #endif
 
     /* Get the Range of X and Y */
-    if (ioctl(mousefd, EVIOCGABS(ABS_X), &info)) {
+    if (ioctl(fd, EVIOCGABS(ABS_X), &info)) {
         log_error("Unable to get abs X value: %m\n");
         return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
-    if (ioctl(mousefd, EVIOCGABS(ABS_Y), &info)) {
+    if (ioctl(fd, EVIOCGABS(ABS_Y), &info)) {
         log_error("Unable to get abs Y value: %m\n");
         return 0;
     }
@@ -83,8 +83,8 @@ int init_mouse(const char *mouse_device, int vnc_rotate)
 
 void cleanup_mouse()
 {
-    if (mousefd != -1)
-        close(mousefd);
+    if (fd != -1)
+        close(fd);
 }
 
 void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
@@ -148,7 +148,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
                 ev.type = EV_KEY;
                 ev.code = mouseButtonMap[bi].value;
                 ev.value = isPressed;
-                if (write(mousefd, &ev, sizeof(ev)) < 0)
+                if (write(fd, &ev, sizeof(ev)) < 0)
                     log_warn("Unable to write mouse event: %m\n");
 
                 log_info("Button %s=%04X\n", mouseButtonMap[bi].name,
@@ -178,7 +178,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
                 ev.code = REL_WHEEL;
                 ev.value = wheel_tick;
             }
-            if (write(mousefd, &ev, sizeof(ev)) < 0)
+            if (write(fd, &ev, sizeof(ev)) < 0)
                 log_warn("Unable to write mouse event: %m\n");
             last_wheel_tick = wheel_tick;
             wheel_tick = 0;
@@ -197,7 +197,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
         ev.type = EV_ABS;
         ev.code = ABS_X;
         ev.value = x;
-        if (write(mousefd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             log_warn("Unable to write mouse event: %m\n");
         last_x = x;
     }
@@ -210,7 +210,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
         ev.type = EV_ABS;
         ev.code = ABS_Y;
         ev.value = y;
-        if (write(mousefd, &ev, sizeof(ev)) < 0)
+        if (write(fd, &ev, sizeof(ev)) < 0)
             log_warn("Unable to write mouse event: %m\n");
         last_y = y;
     }
@@ -222,7 +222,7 @@ void injectMouseEvent(int buttonMask, int x, int y, int xres, int yres)
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;
-    if (write(mousefd, &ev, sizeof(ev)) < 0)
+    if (write(fd, &ev, sizeof(ev)) < 0)
         log_warn("Unable to write mouse event: %m\n");
 
     log_debug("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n",
