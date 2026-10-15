@@ -27,13 +27,15 @@ static int trkg_id = -1;
 
 int init_touch(const char *touch_device, int vnc_rotate)
 {
-    tklog_info("Initializing touch device %s ...\n", touch_device);
     struct input_absinfo info;
+
+    tklog_info("Initializing touch device %s ...\n", touch_device);
     if ((touchfd = open(touch_device, O_RDWR)) == -1) {
         tklog_error("Unable to open touch device %s (%d).\n", touch_device,
                     errno);
         return 0;
     }
+
     /* Get the Range of X and Y */
     if (ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
         tklog_error("Unable to get abs X value (%d).\n", errno);
@@ -188,6 +190,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
     ev.value = 0;
     if (write(touchfd, &ev, sizeof(ev)) < 0)
         tklog_warn("Unable to write touch event (%d).\n", errno);
+
     tklog_debug("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), mouse=%d)\n",
                 xin, yin, x, y, mouseAction);
 }
