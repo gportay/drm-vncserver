@@ -113,7 +113,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, int xres,
         sendTouch = false;
         break;
     default:
-        tklog_error("%d is an invalid mouse action.\n", mouseAction);
+        tklog_fatal("%d is an invalid mouse action.\n", mouseAction);
         exit(EXIT_FAILURE);
     }
 
