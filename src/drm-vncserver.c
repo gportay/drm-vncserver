@@ -445,7 +445,6 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
     RFB_Server->serverFormat.redMax       = 0x00FF;
     RFB_Server->serverFormat.greenMax     = 0x00FF;
     RFB_Server->serverFormat.blueMax      = 0x00FF;
-    RFB_Server->serverFormat.blueMax      = 0x00FF;
     RFB_Server->serverFormat.redShift     = var_scrinfo.red.offset;
     RFB_Server->serverFormat.greenShift   = var_scrinfo.green.offset;
     RFB_Server->serverFormat.blueShift    = var_scrinfo.blue.offset;
