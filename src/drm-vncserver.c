@@ -377,11 +377,13 @@ static void init_drmFB(void)
 
 static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 {
+    UNUSED(cl);
+
     int scancode;
 
     log_debug("Got keysym: %04x (down=%d)\n", (unsigned int)key, (int)down);
 
-    if ((scancode = keysym2scancode(key, cl)))
+    if ((scancode = keysym2scancode(key)))
         injectKeyEvent(scancode, down);
 }
 
