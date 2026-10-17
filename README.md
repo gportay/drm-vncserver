@@ -23,8 +23,7 @@ Run `make install` to install the binary to system.
 
 ### command-line help
 
-	drm-vncserver [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]
-	-p port                VNC port, default is 5900
+	drm-vncserver [-f device] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]
 	-f device              drm device node, default is /dev/dri/card1
 	-k device              keyboard device node (example: /dev/input/event0)
 	-t device              touchscreen device node (example:/dev/input/event2)
@@ -84,7 +83,6 @@ Run `make install` to install the binary to system.
 	[INFO    ]    x:(0 4095)  y:(0 4095)
 	[INFO    ]  VNC server initialized with the following parameters :
 	[INFO    ]    width,height       : 800,480
-	[INFO    ]    port               : 5900
 	[INFO    ]    rotate             : 90
 	[INFO    ]    mouse/touch rotate : 90
 	[INFO    ]    target FPS         : 10

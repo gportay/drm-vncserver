@@ -62,7 +62,6 @@ static int drmfd = -1;
 static char drmFB_device[PATH_MAX] = "/dev/dri/card0";
 static uint32_t *DRM_FrameBuffer = MAP_FAILED;
 
-static int VNC_port = 5900;
 static int VNC_rotate = -1;
 static int Touch_rotate = -1;
 static int Target_fps = 0;
@@ -474,7 +473,6 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch,
     RFB_Server->frameBuffer  = (char *)RFB_FrameBuffer;
     RFB_Server->alwaysShared = TRUE;
     RFB_Server->httpDir      = NULL;
-    RFB_Server->port         = VNC_port;
 
     RFB_Server->kbdAddEvent = keyevent;
     if (enable_touch)
@@ -593,8 +591,7 @@ static void update_screen32()
 
 static void print_usage(char **argv)
 {
-    printf("%s [-f device] [-p port] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
-           "-p port                VNC port, default is 5900\n"
+    printf("%s [-f device] [-t touchscreen] [-m mouse] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
            "-f device              drm device node, default is %s\n"
            "-k device              keyboard device node (example: /dev/input/event0)\n"
            "-t device              touchscreen device node (example:/dev/input/event2)\n"
@@ -638,11 +635,6 @@ int main(int argc, char **argv)
                     i++;
                     if (argv[i])
                         strncpy(kbd_device, argv[i], PATH_MAX - 1);
-                    break;
-                case 'p':
-                    i++;
-                    if (argv[i])
-                        VNC_port = atoi(argv[i]);
                     break;
                 case 'r':
                     i++;
@@ -720,7 +712,6 @@ int main(int argc, char **argv)
 
     log_info("VNC server initialized with the following parameters :\n");
     log_info("  width,height       : %d,%d\n", (int)FrameBuffer_Xwidth, (int)FrameBuffer_Yheight);
-    log_info("  port               : %d\n", (int)VNC_port);
     log_info("  rotate             : %d\n", (int)VNC_rotate);
     log_info("  mouse/touch rotate : %d\n", (int)Touch_rotate);
     log_info("  target FPS         : %d\n", (int)Target_fps);
