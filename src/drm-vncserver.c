@@ -632,7 +632,7 @@ int main(int argc, char **argv)
     if (argc > 1) {
         int i = 1;
         while (i < argc) {
-            if (*argv[i] == '-') {
+            if (argv[i][0] == '-' && *(argv[i] + 1) != 0 && *(argv[i] + 2) == 0) {
                 switch (*(argv[i] + 1)) {
                 case 'h':
                     print_usage(argv);
