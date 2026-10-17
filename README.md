@@ -63,26 +63,31 @@ Run `make install` to install the binary to system.
 
 ### example with a i915 based laptop
 
-	drm-vncserver -f /dev/dri/card0 -t /dev/input/event0 -k /dev/input/event1 -r 90 -F 10
+	drm-vncserver -f /dev/dri/card1 -t /dev/input/event5 -k /dev/input/event3 -r 90 -F 10
 	[INFO    ]  VNCSERVER STARTING...
-	[INFO    ]  DRM device /dev/dri/card0 sucessfully opened.
-	[INFO    ]  DRM device has 1 connectors.
-	[INFO    ]  DRM Device Name: LVDS-1
-	[INFO    ]  Encoder        : 50
-	[INFO    ]  Resolution : 800x480@60
-	[INFO    ]  (ht: 1056 hs: 842 he: 970 hskew: 0, vt: 525 vs: 490 ve: 492 vscan: 0, flags: 0xA <P>)
-	[INFO    ]  Connector 51 is connected to encoder 50 CRTC 38.
-	[INFO    ]  Got framebuffer at CRTC: 38.
-	[INFO    ]  FB is format XR24 width 800 height 480.
-	[INFO    ]   fb xres=800, yres=480, bpp=32
-	[INFO    ]    offset:length red=16:255 green=8:255 blue=0:255
-	[INFO    ]    frame buffer size : 1536000 bytes
-	[INFO    ]  DRM frame buffer map of 1536000 bytes allocated at 0xb675f000.
-	[INFO    ]  Initializing keyboard device /dev/input/event1 ...
-	[INFO    ]  Initializing touch device /dev/input/event0 ...
-	[INFO    ]    x:(0 4095)  y:(0 4095)
+	[INFO    ]  DRM device /dev/dri/card1 sucessfully opened.
+	[INFO    ]  DRM device has 6 connectors.
+	[INFO    ]  DRM Device Name: eDP-1
+	[INFO    ]  Encoder        : 506
+	[INFO    ]  Resolution : 1920x1200@60
+	[INFO    ]  (ht: 2104 hs: 1936 he: 1952 hskew: 0, vt: 1236 vs: 1203 ve: 1217 vscan: 0, flags: 0xA <P>)
+	[INFO    ]  Connector 507 is connected to encoder 506 CRTC 504.
+	[INFO    ]  Got framebuffer at CRTC: 504.
+	[INFO    ]  FB is format XR24 width 1920 height 1200.
+	[INFO    ]  FB has 3 plane(s):
+	[INFO    ]  Plane 0 has handle 1 pitch 7680 offset 0
+	[INFO    ]  Plane 1 has handle 1 pitch 960 offset 9338880
+	[INFO    ]  Plane 2 has handle 1 pitch 64 offset 9375744
+	[WARN    ]  FB has modifier Intel Color Control Surface with Clear Color (CCS) for DG2 render compression.
+	[INFO    ]   fb xres=1920, yres=1200, bpp=32
+	[INFO    ]    offset:length red=16:255 green=8:255 blue=0:255 
+	[INFO    ]    frame buffer size : 9216000 bytes
+	[INFO    ]  DRM frame buffer map of 9216000 bytes allocated at 0x7070aacaa000.
+	[INFO    ]  Initializing keyboard device /dev/input/event3 ...
+	[INFO    ]  Initializing touch device /dev/input/event5 ...
+	[INFO    ]    x:(0 3364)  y:(0 1669) 
 	[INFO    ]  VNC server initialized with the following parameters :
-	[INFO    ]    width,height       : 800,480
+	[INFO    ]    width,height       : 1920,1200
 	[INFO    ]    rotate             : 90
 	[INFO    ]    mouse/touch rotate : 90
 	[INFO    ]    target FPS         : 10
