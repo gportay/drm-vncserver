@@ -383,8 +383,8 @@ static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 
     log_debug("Got keysym: %04x (down=%d)\n", (unsigned int)key, (int)down);
 
-    if ((scancode = keysym2scancode(key)))
-        injectKeyEvent(scancode, down);
+    scancode = keysym2scancode(key);
+    injectKeyEvent(scancode, down);
 }
 
 static void ptrevent_touch(int buttonMask, int x, int y, rfbClientPtr cl)
